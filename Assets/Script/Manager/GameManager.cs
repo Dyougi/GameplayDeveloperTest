@@ -25,6 +25,9 @@ public class GameManager : MonoBehaviour {
     [SerializeField]
     private GameObject platformDefault;
 
+    [SerializeField]
+    private GameObject platformStart;
+
     private int score;
     private float ratePlatform;
 
@@ -54,7 +57,8 @@ public class GameManager : MonoBehaviour {
 
     void Start ()
     {
-        GameStarted = true;
+        GameStarted = false;
+        Pause = true;
         InitGame();
     }
 	
@@ -80,9 +84,35 @@ public class GameManager : MonoBehaviour {
     void InitGame()
     {
         playerInstance.SetToStartPos();
-        lastInstanceTime = -100;
         ratePlatform = distanceBetweenPlatform / speedPlatform;
         currentPosPlatform = e_posPlatform.BOT;
+        InitTerrain();
+        StartGame();
+    }
+
+    void InitTerrain()
+    {
+        int offset = -40;
+        Vector3 posPlatform = Vector3.forward * offset;
+        Vector3 posPlatformStart = new Vector3(0, 0, -1);
+        GameObject currentInsance = Instantiate(platformStart, posPlatformStart, Quaternion.identity);
+        currentInsance.GetComponent<Platform>().Init(0, posPlatformStart, posPlatformStart, false);
+        for (int count = 0; count < 9; count++)
+        {
+            currentInsance = Instantiate(platformDefault, positionPlatformCreate[(int)currentPosPlatform].position, positionPlatformCreate[(int)currentPosPlatform].rotation);
+            currentInsance.GetComponent<Platform>().Init(speedPlatform, positionPlatformCreate[(int)currentPosPlatform].position, positionPlatformStart[(int)currentPosPlatform].position + posPlatform);
+            currentInsance.GetComponent<Platform>().PosPlatform = currentPosPlatform;
+            GetNewPosPlatform();
+            Debug.Log("posPlatform: " + posPlatform);
+            offset += 5;
+            posPlatform = Vector3.forward * offset;
+        }
+    }
+
+    public void StartGame()
+    {
+        GameStarted = true;
+        lastInstanceTime = 0;
     }
 
     void RestartGame()
