@@ -6,14 +6,34 @@ public class Platform : MonoBehaviour {
 
     public float Speed {get; set;}
 
+    public enum e_platformColor { RED, BLUE, GREEN }
+
 	void Start ()
     {
-        Speed = 1;
-
+        Pause = false;
     }
 	
 	void Update ()
     {
-        transform.Translate(Vector3.back * Time.deltaTime * Speed);
+        if (GameManager.Instance.GameStarted)
+        {
+            if (!Pause)
+            {
+                transform.Translate(Vector3.back * Time.deltaTime * Speed);
+            }
+        }
 	}
+
+    void Init(float newSpeed)
+    {
+        Speed = newSpeed;
+    }
+
+    public void ChangeColor(e_platformColor newColor)
+    {
+
+    }
+
+    public bool Pause { get; set; }
+    public GameManager.e_posPlatform PosPlatform { get; set; }
 }
