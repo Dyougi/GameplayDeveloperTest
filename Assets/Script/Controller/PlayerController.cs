@@ -4,6 +4,9 @@ using UnityEngine;
 
 public class PlayerController : MonoBehaviour {
 
+    public delegate void JumpAction();
+    public static event JumpAction OnJump;
+
     private Rigidbody rb;
     private Vector3 playerDefaultPos;
 
@@ -22,6 +25,8 @@ public class PlayerController : MonoBehaviour {
             {
                 if (Input.GetButtonDown("Jump"))
                 {
+                    if (OnJump != null)
+                        OnJump();
                     rb.AddForce(Vector3.up * 8, ForceMode.Impulse);
                 }
             }

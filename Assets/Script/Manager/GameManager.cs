@@ -28,10 +28,15 @@ public class GameManager : MonoBehaviour {
     [SerializeField]
     private GameObject platformStart;
 
+    [SerializeField]
+    private GameObject platformEnvironment;
+
     private int score;
     private float ratePlatform;
+    private List<GameObject> instancePlatform;
 
     private float lastInstanceTime;
+    private GameObject currentPlatform;
     private e_posPlatform currentPosPlatform;
 
     private static GameManager instance;
@@ -59,6 +64,8 @@ public class GameManager : MonoBehaviour {
     {
         GameStarted = false;
         Pause = true;
+        instancePlatform = new List<GameObject>();
+        PlayerController.OnJump += PlayerJumped;
         InitGame();
     }
 	
@@ -72,9 +79,11 @@ public class GameManager : MonoBehaviour {
                 {
                     Debug.Log("INSTANCE time: " + MyTimer.Instance.TotalTime);
                     lastInstanceTime = MyTimer.Instance.TotalTime;
-                    GameObject currentInsance = Instantiate(platformDefault, positionPlatformStart[(int)currentPosPlatform]);
-                    currentInsance.GetComponent<Platform>().Speed = speedPlatform;
-                    currentInsance.GetComponent<Platform>().PosPlatform = currentPosPlatform;
+                    GameObject currentInstance = Instantiate(platformDefault, positionPlatformStart[(int)currentPosPlatform]);
+                    currentInstance.transform.parent = platformEnvironment.transform;
+                    currentInstance.GetComponent<Platform>().Speed = speedPlatform;
+                    currentInstance.GetComponent<Platform>().PosPlatform = currentPosPlatform;
+                    instancePlatform.Add(currentInstance);
                     GetNewPosPlatform();
                 }
             }
@@ -87,7 +96,7 @@ public class GameManager : MonoBehaviour {
         ratePlatform = distanceBetweenPlatform / speedPlatform;
         currentPosPlatform = e_posPlatform.BOT;
         InitTerrain();
-        StartGame();
+        //StartGame();
     }
 
     void InitTerrain()
@@ -95,18 +104,23 @@ public class GameManager : MonoBehaviour {
         int offset = -40;
         Vector3 posPlatform = Vector3.forward * offset;
         Vector3 posPlatformStart = new Vector3(0, 0, -1);
-        GameObject currentInsance = Instantiate(platformStart, posPlatformStart, Quaternion.identity);
-        currentInsance.GetComponent<Platform>().Init(0, posPlatformStart, posPlatformStart, false);
+
+        GameObject currentInstance = Instantiate(platformStart, posPlatformStart, Quaternion.identity);
+        currentInstance.transform.parent = platformEnvironment.transform;
+        currentInstance.GetComponent<Platform>().Init(0, posPlatformStart, posPlatformStart, false);
+        instancePlatform.Add(currentInstance);
         for (int count = 0; count < 9; count++)
         {
-            currentInsance = Instantiate(platformDefault, positionPlatformCreate[(int)currentPosPlatform].position, positionPlatformCreate[(int)currentPosPlatform].rotation);
-            currentInsance.GetComponent<Platform>().Init(speedPlatform, positionPlatformCreate[(int)currentPosPlatform].position, positionPlatformStart[(int)currentPosPlatform].position + posPlatform);
-            currentInsance.GetComponent<Platform>().PosPlatform = currentPosPlatform;
+            currentInstance = Instantiate(platformDefault, positionPlatformCreate[(int)currentPosPlatform].position, positionPlatformCreate[(int)currentPosPlatform].rotation);
+            currentInstance.transform.parent = platformEnvironment.transform;
+            currentInstance.GetComponent<Platform>().Init(speedPlatform, positionPlatformCreate[(int)currentPosPlatform].position, positionPlatformStart[(int)currentPosPlatform].position + posPlatform);
+            currentInstance.GetComponent<Platform>().PosPlatform = currentPosPlatform;
+            instancePlatform.Add(currentInstance);
             GetNewPosPlatform();
-            Debug.Log("posPlatform: " + posPlatform);
             offset += 5;
             posPlatform = Vector3.forward * offset;
         }
+        currentPlatform = instancePlatform[0];
     }
 
     public void StartGame()
@@ -126,6 +140,19 @@ public class GameManager : MonoBehaviour {
             currentPosPlatform = currentPosPlatform == e_posPlatform.BOTLEFT ? e_posPlatform.BOT : currentPosPlatform + 1;
         else
             currentPosPlatform = currentPosPlatform == e_posPlatform.BOT ? e_posPlatform.BOTLEFT : currentPosPlatform - 1;
+    }
+
+    void PlayerJumped()
+    {
+        if (instancePlatform[1].GetComponent<Platform>().PosPlatform - currentPlatform.GetComponent<Platform>().PosPlatform > 0)
+            RotatePlatformEnvironment(45);
+        if (instancePlatform[1].GetComponent<Platform>().PosPlatform - currentPlatform.GetComponent<Platform>().PosPlatform < 0)
+            RotatePlatformEnvironment(-45);
+    }
+
+    void RotatePlatformEnvironment(int degree)
+    {
+        platformEnvironment.transform.Rotate(Vector3.forward * degree);
     }
 
     public bool Pause { get; set; }

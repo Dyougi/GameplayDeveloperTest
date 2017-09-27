@@ -40,6 +40,8 @@ public class Platform : MonoBehaviour {
         endPosition = newEndPosition;
         if (doLerp)
             StartCoroutine(TranslatePlatformToStart());
+        else
+            isAtStart = true;
     }
 
     public void ChangeColor(e_platformColor newColor)
