@@ -31,9 +31,10 @@ public class Platform : MonoBehaviour {
             {
                 if (isAtStart)
                 {
-                    if (transform.position.x > endTranslatePlatform.x)
+                    if (transform.position.z < endTranslatePlatform.z)
                     {
                         GameManager.Instance.DestroyPlatform(this.gameObject);
+                        Debug.Log("DESTROY platform");
                         Destroy(this.gameObject);
                     }
                     transform.Translate(Vector3.back * Time.deltaTime * Speed);

@@ -37,6 +37,7 @@ public class GameManager : MonoBehaviour {
 
     private float lastInstanceTime;
     private GameObject currentPlatform;
+    private GameObject secondPlatform;
     private e_posPlatform currentPosPlatform;
 
     private static GameManager instance;
@@ -95,7 +96,7 @@ public class GameManager : MonoBehaviour {
     {
         playerInstance.SetToStartPos();
         ratePlatform = distanceBetweenPlatform / speedPlatform;
-        currentPosPlatform = e_posPlatform.BOTRIGHT;
+        currentPosPlatform = e_posPlatform.BOT;
         InitTerrain();
         //StartGame();
     }
@@ -109,7 +110,8 @@ public class GameManager : MonoBehaviour {
         GameObject currentInstance = Instantiate(platformStart, posPlatformStart, Quaternion.identity);
         currentInstance.transform.parent = platformEnvironment.transform;
         currentInstance.GetComponent<Platform>().Init(speedPlatform, posPlatformStart, posPlatformStart, positionPlatformEnd.position, false);
-        currentInstance.GetComponent<Platform>().PosPlatform = e_posPlatform.BOT;
+        currentInstance.GetComponent<Platform>().PosPlatform = currentPosPlatform;
+        GetNewPosPlatform();
         instancePlatform.Add(currentInstance);
         for (int count = 0; count < 9; count++)
         {
@@ -123,6 +125,7 @@ public class GameManager : MonoBehaviour {
             posPlatform = Vector3.forward * offset;
         }
         currentPlatform = instancePlatform[0];
+        secondPlatform = instancePlatform[1];
     }
 
     public void StartGame()
@@ -143,12 +146,14 @@ public class GameManager : MonoBehaviour {
         else
             currentPosPlatform = currentPosPlatform == e_posPlatform.BOT ? e_posPlatform.BOTLEFT : currentPosPlatform - 1;
     }
-                        //    0       1      2         3      4      5       6       7
+    //    0       1      2         3      4      5       6       7
     void PlayerJumped() // { BOT, BOTRIGHT, RIGHT, TOPRIGHT, TOP, TOPLEFT, LEFT, BOTLEFT };
     {
+        Debug.Log("currentPlatform: " + currentPlatform.GetComponent<Platform>().PosPlatform);
+        Debug.Log("secondPlatform: " + secondPlatform.GetComponent<Platform>().PosPlatform);
         if (currentPlatform.GetComponent<Platform>().PosPlatform == 0)
         {
-            if (instancePlatform[1].GetComponent<Platform>().PosPlatform == (e_posPlatform)1)
+            if (secondPlatform.GetComponent<Platform>().PosPlatform == (e_posPlatform)1)
                 RotatePlatformEnvironment(e_dirRotation.RIGHT);
             else
                 RotatePlatformEnvironment(e_dirRotation.LEFT);
@@ -156,15 +161,15 @@ public class GameManager : MonoBehaviour {
         }
         if (currentPlatform.GetComponent<Platform>().PosPlatform == (e_posPlatform)7)
         {
-            if (instancePlatform[1].GetComponent<Platform>().PosPlatform == 0)
+            if (secondPlatform.GetComponent<Platform>().PosPlatform == 0)
                 RotatePlatformEnvironment(e_dirRotation.RIGHT);
             else
                 RotatePlatformEnvironment(e_dirRotation.LEFT);
             return;
         }
-        if (currentPlatform.GetComponent<Platform>().PosPlatform < instancePlatform[1].GetComponent<Platform>().PosPlatform)
+        if (currentPlatform.GetComponent<Platform>().PosPlatform < secondPlatform.GetComponent<Platform>().PosPlatform)
             RotatePlatformEnvironment(e_dirRotation.RIGHT);
-        if (currentPlatform.GetComponent<Platform>().PosPlatform > instancePlatform[1].GetComponent<Platform>().PosPlatform)
+        if (currentPlatform.GetComponent<Platform>().PosPlatform > secondPlatform.GetComponent<Platform>().PosPlatform)
             RotatePlatformEnvironment(e_dirRotation.LEFT);
     }
 
@@ -172,6 +177,8 @@ public class GameManager : MonoBehaviour {
     {
         Debug.Log("RotatePlatformEnvironment: " + dir.ToString());
         StartCoroutine(DoRotatePlatformEnvironment(dir));
+        currentPlatform = secondPlatform;
+        secondPlatform = instancePlatform[instancePlatform.IndexOf(secondPlatform) + 1];
     }
 
     IEnumerator DoRotatePlatformEnvironment(e_dirRotation dir)
