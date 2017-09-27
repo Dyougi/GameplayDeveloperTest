@@ -42,6 +42,7 @@ public class GameManager : MonoBehaviour {
     private static GameManager instance;
 
     public enum e_posPlatform { BOT, BOTRIGHT, RIGHT, TOPRIGHT, TOP, TOPLEFT, LEFT, BOTLEFT };
+    public enum e_dirRotation { LEFT, RIGHT };
 
     private void Awake()
     {
@@ -94,7 +95,7 @@ public class GameManager : MonoBehaviour {
     {
         playerInstance.SetToStartPos();
         ratePlatform = distanceBetweenPlatform / speedPlatform;
-        currentPosPlatform = e_posPlatform.BOT;
+        currentPosPlatform = e_posPlatform.BOTRIGHT;
         InitTerrain();
         //StartGame();
     }
@@ -107,13 +108,14 @@ public class GameManager : MonoBehaviour {
 
         GameObject currentInstance = Instantiate(platformStart, posPlatformStart, Quaternion.identity);
         currentInstance.transform.parent = platformEnvironment.transform;
-        currentInstance.GetComponent<Platform>().Init(0, posPlatformStart, posPlatformStart, false);
+        currentInstance.GetComponent<Platform>().Init(speedPlatform, posPlatformStart, posPlatformStart, positionPlatformEnd.position, false);
+        currentInstance.GetComponent<Platform>().PosPlatform = e_posPlatform.BOT;
         instancePlatform.Add(currentInstance);
         for (int count = 0; count < 9; count++)
         {
             currentInstance = Instantiate(platformDefault, positionPlatformCreate[(int)currentPosPlatform].position, positionPlatformCreate[(int)currentPosPlatform].rotation);
             currentInstance.transform.parent = platformEnvironment.transform;
-            currentInstance.GetComponent<Platform>().Init(speedPlatform, positionPlatformCreate[(int)currentPosPlatform].position, positionPlatformStart[(int)currentPosPlatform].position + posPlatform);
+            currentInstance.GetComponent<Platform>().Init(speedPlatform, positionPlatformCreate[(int)currentPosPlatform].position, positionPlatformStart[(int)currentPosPlatform].position + posPlatform, positionPlatformEnd.position);
             currentInstance.GetComponent<Platform>().PosPlatform = currentPosPlatform;
             instancePlatform.Add(currentInstance);
             GetNewPosPlatform();
@@ -141,18 +143,61 @@ public class GameManager : MonoBehaviour {
         else
             currentPosPlatform = currentPosPlatform == e_posPlatform.BOT ? e_posPlatform.BOTLEFT : currentPosPlatform - 1;
     }
-
-    void PlayerJumped()
+                        //    0       1      2         3      4      5       6       7
+    void PlayerJumped() // { BOT, BOTRIGHT, RIGHT, TOPRIGHT, TOP, TOPLEFT, LEFT, BOTLEFT };
     {
-        if (instancePlatform[1].GetComponent<Platform>().PosPlatform - currentPlatform.GetComponent<Platform>().PosPlatform > 0)
-            RotatePlatformEnvironment(45);
-        if (instancePlatform[1].GetComponent<Platform>().PosPlatform - currentPlatform.GetComponent<Platform>().PosPlatform < 0)
-            RotatePlatformEnvironment(-45);
+        if (currentPlatform.GetComponent<Platform>().PosPlatform == 0)
+        {
+            if (instancePlatform[1].GetComponent<Platform>().PosPlatform == (e_posPlatform)1)
+                RotatePlatformEnvironment(e_dirRotation.RIGHT);
+            else
+                RotatePlatformEnvironment(e_dirRotation.LEFT);
+            return;
+        }
+        if (currentPlatform.GetComponent<Platform>().PosPlatform == (e_posPlatform)7)
+        {
+            if (instancePlatform[1].GetComponent<Platform>().PosPlatform == 0)
+                RotatePlatformEnvironment(e_dirRotation.RIGHT);
+            else
+                RotatePlatformEnvironment(e_dirRotation.LEFT);
+            return;
+        }
+        if (currentPlatform.GetComponent<Platform>().PosPlatform < instancePlatform[1].GetComponent<Platform>().PosPlatform)
+            RotatePlatformEnvironment(e_dirRotation.RIGHT);
+        if (currentPlatform.GetComponent<Platform>().PosPlatform > instancePlatform[1].GetComponent<Platform>().PosPlatform)
+            RotatePlatformEnvironment(e_dirRotation.LEFT);
     }
 
-    void RotatePlatformEnvironment(int degree)
+    void RotatePlatformEnvironment(e_dirRotation dir)
     {
-        platformEnvironment.transform.Rotate(Vector3.forward * degree);
+        Debug.Log("RotatePlatformEnvironment: " + dir.ToString());
+        StartCoroutine(DoRotatePlatformEnvironment(dir));
+    }
+
+    IEnumerator DoRotatePlatformEnvironment(e_dirRotation dir)
+    {
+        float angle = 0.0f;
+        float degree;
+        while (angle < 45.0f)
+        {
+            degree = Time.deltaTime * 150;
+            if (dir == e_dirRotation.RIGHT)
+            {
+                platformEnvironment.transform.Rotate(Vector3.back * degree);
+            }
+            else
+            {
+                platformEnvironment.transform.Rotate(Vector3.forward * degree);
+
+            }
+            angle += degree;
+            yield return null;
+        }
+    }
+
+    public void DestroyPlatform(GameObject thisPlatform)
+    {
+        instancePlatform.Remove(thisPlatform);
     }
 
     public bool Pause { get; set; }

@@ -25,6 +25,7 @@ public class PlayerController : MonoBehaviour {
             {
                 if (Input.GetButtonDown("Jump"))
                 {
+                    Debug.Log("jump");
                     if (OnJump != null)
                         OnJump();
                     rb.AddForce(Vector3.up * 8, ForceMode.Impulse);
