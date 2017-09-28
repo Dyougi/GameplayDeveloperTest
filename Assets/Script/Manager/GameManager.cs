@@ -65,7 +65,7 @@ public class GameManager : MonoBehaviour {
     void Start ()
     {
         GameStarted = false;
-        Pause = true;
+        Pause = false;
         instancePlatform = new List<GameObject>();
         PlayerController.OnJump += PlayerJumped;
         InitGame();
@@ -80,13 +80,14 @@ public class GameManager : MonoBehaviour {
                 if (lastInstanceTime + ratePlatform < MyTimer.Instance.TotalTime)
                 {
                     Debug.Log("INSTANCE time: " + MyTimer.Instance.TotalTime);
-                    lastInstanceTime = MyTimer.Instance.TotalTime;
                     GameObject currentInstance = Instantiate(platformDefault, positionPlatformStart[(int)currentPosPlatform]);
                     currentInstance.transform.parent = platformEnvironment.transform;
+                    currentInstance.GetComponent<Platform>().Init(speedPlatform, positionPlatformCreate[(int)currentPosPlatform].position, positionPlatformStart[(int)currentPosPlatform].position, positionPlatformEnd.position);
                     currentInstance.GetComponent<Platform>().Speed = speedPlatform;
                     currentInstance.GetComponent<Platform>().PosPlatform = currentPosPlatform;
                     instancePlatform.Add(currentInstance);
                     GetNewPosPlatform();
+                    lastInstanceTime = MyTimer.Instance.TotalTime;
                 }
             }
         }
@@ -146,7 +147,7 @@ public class GameManager : MonoBehaviour {
         else
             currentPosPlatform = currentPosPlatform == e_posPlatform.BOT ? e_posPlatform.BOTLEFT : currentPosPlatform - 1;
     }
-    //    0       1      2         3      4      5       6       7
+    //                        0       1      2         3      4      5       6       7
     void PlayerJumped() // { BOT, BOTRIGHT, RIGHT, TOPRIGHT, TOP, TOPLEFT, LEFT, BOTLEFT };
     {
         Debug.Log("currentPlatform: " + currentPlatform.GetComponent<Platform>().PosPlatform);
@@ -168,9 +169,15 @@ public class GameManager : MonoBehaviour {
             return;
         }
         if (currentPlatform.GetComponent<Platform>().PosPlatform < secondPlatform.GetComponent<Platform>().PosPlatform)
+        {
             RotatePlatformEnvironment(e_dirRotation.RIGHT);
+            return;
+        }
         if (currentPlatform.GetComponent<Platform>().PosPlatform > secondPlatform.GetComponent<Platform>().PosPlatform)
+        {
             RotatePlatformEnvironment(e_dirRotation.LEFT);
+            return;
+        }
     }
 
     void RotatePlatformEnvironment(e_dirRotation dir)
@@ -185,9 +192,10 @@ public class GameManager : MonoBehaviour {
     {
         float angle = 0.0f;
         float degree;
-        while (angle < 45.0f)
+        Vector3 saveRotation = platformEnvironment.transform.eulerAngles;
+        while (angle <= 45.0f)
         {
-            degree = Time.deltaTime * 150;
+            degree = Time.deltaTime * 400;
             if (dir == e_dirRotation.RIGHT)
             {
                 platformEnvironment.transform.Rotate(Vector3.back * degree);
@@ -199,6 +207,14 @@ public class GameManager : MonoBehaviour {
             }
             angle += degree;
             yield return null;
+        }
+        if (dir == e_dirRotation.RIGHT)
+        {
+            platformEnvironment.transform.eulerAngles = saveRotation + (Vector3.back * 45);
+        }
+        else
+        {
+            platformEnvironment.transform.eulerAngles = saveRotation + (Vector3.forward * 45);
         }
     }
 
