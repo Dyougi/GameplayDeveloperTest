@@ -3,20 +3,15 @@ using System.Collections.Generic;
 using UnityEngine;
 
 public class Platform : MonoBehaviour {
-
-    private bool isAtStart;
-    private Vector3 startPosition;
-    private Vector3 endPosition;
+    
+    private Transform startPosition;
+    private Transform endPosition;
     private Vector3 endTranslatePlatform;
 
     public float Speed {get; set;}
+    public float Id { get; set; }
 
     public enum e_platformColor { RED, BLUE, GREEN }
-
-    void Awake()
-    {
-        isAtStart = false;
-    }
 
 	void Start ()
     {
@@ -29,30 +24,24 @@ public class Platform : MonoBehaviour {
         {
             if (!Pause)
             {
-                if (isAtStart)
+                if (transform.position.z < endTranslatePlatform.z)
                 {
-                    if (transform.position.z < endTranslatePlatform.z)
-                    {
-                        GameManager.Instance.DestroyPlatform(this.gameObject);
-                        Debug.Log("DESTROY platform");
-                        Destroy(this.gameObject);
-                    }
-                    transform.Translate(Vector3.back * Time.deltaTime * Speed);
+                    GameManager.Instance.DestroyPlatform(this.gameObject);
+                    Destroy(this.gameObject);
                 }
+                transform.Translate(Vector3.back * Time.deltaTime * Speed);
             }
         }
 	}
 
-    public void Init(float newSpeed, Vector3 newStartPosition, Vector3 newEndPosition, Vector3 newEndTranslatePlatform, bool doLerp = true)
+    public void Init(float newSpeed, Transform newStartPosition, Transform newEndPosition, Vector3 newEndTranslatePlatform, Vector3 offset, bool doLerp = true)
     {
         Speed = newSpeed;
         startPosition = newStartPosition;
         endPosition = newEndPosition;
         endTranslatePlatform = newEndTranslatePlatform;
         if (doLerp)
-            StartCoroutine(TranslatePlatformToStart());
-        else
-            isAtStart = true;
+            StartCoroutine(TranslatePlatformToStart(offset));
     }
 
     public void ChangeColor(e_platformColor newColor)
@@ -60,17 +49,20 @@ public class Platform : MonoBehaviour {
 
     }
 
-    IEnumerator TranslatePlatformToStart()
+    IEnumerator TranslatePlatformToStart(Vector3 offset)
     {
         float ElapsedTime = 0.0f;
         while (ElapsedTime <= 1.0f)
         {
-            transform.position = Vector3.Lerp(startPosition, endPosition, ElapsedTime);
+            Vector3 lerpVec = Vector3.Lerp(startPosition.position, endPosition.position + offset, ElapsedTime);
+            if (GameManager.Instance.GameStarted)
+                lerpVec.z = transform.position.z;
+            transform.position = lerpVec;
             ElapsedTime += Time.deltaTime;
             yield return null;
         }
-        transform.position = endPosition;
-        isAtStart = true;
+        Vector3 newPos = new Vector3(endPosition.position.x, endPosition.position.y, transform.position.z);
+        transform.position = newPos;
     }
 
     public bool Pause { get; set; }

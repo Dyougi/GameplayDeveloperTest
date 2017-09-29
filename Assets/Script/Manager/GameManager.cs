@@ -8,10 +8,16 @@ public class GameManager : MonoBehaviour {
     private Transform[] positionPlatformStart;
 
     [SerializeField]
-    private Transform[] positionPlatformCreate;
+    private Transform[] positionPlatformEnd;
 
     [SerializeField]
-    private Transform positionPlatformEnd;
+    private Transform positionPlatformDestroy;
+
+    [SerializeField]
+    private Transform positionDeathPlayer;
+
+    [SerializeField]
+    private Transform positionFirstPlatform;
 
     [SerializeField]
     private PlayerController playerInstance;
@@ -39,6 +45,7 @@ public class GameManager : MonoBehaviour {
     private GameObject currentPlatform;
     private GameObject secondPlatform;
     private e_posPlatform currentPosPlatform;
+    private int idPlatform;
 
     private static GameManager instance;
 
@@ -79,12 +86,14 @@ public class GameManager : MonoBehaviour {
             {
                 if (lastInstanceTime + ratePlatform < MyTimer.Instance.TotalTime)
                 {
-                    Debug.Log("INSTANCE time: " + MyTimer.Instance.TotalTime);
-                    GameObject currentInstance = Instantiate(platformDefault, positionPlatformStart[(int)currentPosPlatform]);
+                    Debug.Log("INSTANCE: " + MyTimer.Instance.TotalTime);
+                    GameObject currentInstance = Instantiate(platformDefault, positionPlatformStart[(int)currentPosPlatform].position, positionPlatformStart[(int)currentPosPlatform].rotation);
+                    currentInstance.name = "Platform " + idPlatform;
                     currentInstance.transform.parent = platformEnvironment.transform;
-                    currentInstance.GetComponent<Platform>().Init(speedPlatform, positionPlatformCreate[(int)currentPosPlatform].position, positionPlatformStart[(int)currentPosPlatform].position, positionPlatformEnd.position);
-                    currentInstance.GetComponent<Platform>().Speed = speedPlatform;
+                    currentInstance.GetComponent<Platform>().Init(speedPlatform, positionPlatformStart[(int)currentPosPlatform], positionPlatformEnd[(int)currentPosPlatform], Vector3.zero, positionPlatformDestroy.position);
                     currentInstance.GetComponent<Platform>().PosPlatform = currentPosPlatform;
+                    currentInstance.GetComponent<Platform>().Id = idPlatform;
+                    idPlatform++;
                     instancePlatform.Add(currentInstance);
                     GetNewPosPlatform();
                     lastInstanceTime = MyTimer.Instance.TotalTime;
@@ -96,8 +105,9 @@ public class GameManager : MonoBehaviour {
     void InitGame()
     {
         playerInstance.SetToStartPos();
-        ratePlatform = distanceBetweenPlatform / speedPlatform;
+        ratePlatform = (distanceBetweenPlatform + 4) / speedPlatform;
         currentPosPlatform = e_posPlatform.BOT;
+        idPlatform = 0;
         InitTerrain();
         //StartGame();
     }
@@ -110,16 +120,20 @@ public class GameManager : MonoBehaviour {
 
         GameObject currentInstance = Instantiate(platformStart, posPlatformStart, Quaternion.identity);
         currentInstance.transform.parent = platformEnvironment.transform;
-        currentInstance.GetComponent<Platform>().Init(speedPlatform, posPlatformStart, posPlatformStart, positionPlatformEnd.position, false);
+        currentInstance.GetComponent<Platform>().Init(speedPlatform, positionFirstPlatform, positionFirstPlatform, positionPlatformDestroy.position, Vector3.zero, false);
         currentInstance.GetComponent<Platform>().PosPlatform = currentPosPlatform;
+        currentInstance.GetComponent<Platform>().Id = idPlatform;
+        idPlatform++;
         GetNewPosPlatform();
         instancePlatform.Add(currentInstance);
         for (int count = 0; count < 9; count++)
         {
-            currentInstance = Instantiate(platformDefault, positionPlatformCreate[(int)currentPosPlatform].position, positionPlatformCreate[(int)currentPosPlatform].rotation);
+            currentInstance = Instantiate(platformDefault, positionPlatformStart[(int)currentPosPlatform].position, positionPlatformStart[(int)currentPosPlatform].rotation);
             currentInstance.transform.parent = platformEnvironment.transform;
-            currentInstance.GetComponent<Platform>().Init(speedPlatform, positionPlatformCreate[(int)currentPosPlatform].position, positionPlatformStart[(int)currentPosPlatform].position + posPlatform, positionPlatformEnd.position);
+            currentInstance.GetComponent<Platform>().Init(speedPlatform, positionPlatformStart[(int)currentPosPlatform], positionPlatformEnd[(int)currentPosPlatform], positionPlatformDestroy.position, posPlatform);
             currentInstance.GetComponent<Platform>().PosPlatform = currentPosPlatform;
+            currentInstance.GetComponent<Platform>().Id = idPlatform;
+            idPlatform++;
             instancePlatform.Add(currentInstance);
             GetNewPosPlatform();
             offset += 5;
@@ -132,7 +146,7 @@ public class GameManager : MonoBehaviour {
     public void StartGame()
     {
         GameStarted = true;
-        lastInstanceTime = 0;
+        lastInstanceTime = MyTimer.Instance.TotalTime;
     }
 
     void RestartGame()
@@ -150,8 +164,16 @@ public class GameManager : MonoBehaviour {
     //                        0       1      2         3      4      5       6       7
     void PlayerJumped() // { BOT, BOTRIGHT, RIGHT, TOPRIGHT, TOP, TOPLEFT, LEFT, BOTLEFT };
     {
-        Debug.Log("currentPlatform: " + currentPlatform.GetComponent<Platform>().PosPlatform);
-        Debug.Log("secondPlatform: " + secondPlatform.GetComponent<Platform>().PosPlatform);
+        Debug.Log("################################################");
+        instancePlatform.ForEach(delegate (GameObject obj)
+        {
+            Debug.Log("Platform id: " + obj.GetComponent<Platform>().Id);
+        });
+        Debug.Log("################################################");
+        Debug.Log("BEFORE currentPlatform dir: " + currentPlatform.GetComponent<Platform>().PosPlatform);
+        Debug.Log("BEFORE currentPlatform id: " + currentPlatform.GetComponent<Platform>().Id);
+        Debug.Log("BEFORE secondPlatform dir: " + secondPlatform.GetComponent<Platform>().PosPlatform);
+        Debug.Log("BEFORE secondPlatform id: " + secondPlatform.GetComponent<Platform>().Id);
         if (currentPlatform.GetComponent<Platform>().PosPlatform == 0)
         {
             if (secondPlatform.GetComponent<Platform>().PosPlatform == (e_posPlatform)1)
@@ -186,6 +208,10 @@ public class GameManager : MonoBehaviour {
         StartCoroutine(DoRotatePlatformEnvironment(dir));
         currentPlatform = secondPlatform;
         secondPlatform = instancePlatform[instancePlatform.IndexOf(secondPlatform) + 1];
+        Debug.Log("AFTER currentPlatform dir: " + currentPlatform.GetComponent<Platform>().PosPlatform);
+        Debug.Log("AFTER currentPlatform id: " + currentPlatform.GetComponent<Platform>().Id);
+        Debug.Log("AFTER secondPlatform dir: " + secondPlatform.GetComponent<Platform>().PosPlatform);
+        Debug.Log("AFTER secondPlatform id: " + secondPlatform.GetComponent<Platform>().Id + "\n");
     }
 
     IEnumerator DoRotatePlatformEnvironment(e_dirRotation dir)
