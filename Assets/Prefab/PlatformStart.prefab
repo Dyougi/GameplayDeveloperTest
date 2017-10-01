@@ -22,7 +22,7 @@ GameObject:
   - component: {fileID: 33273671118277996}
   - component: {fileID: 23092466204083072}
   - component: {fileID: 95286667225407812}
-  m_Layer: 0
+  m_Layer: 9
   m_Name: ChamferBox
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -39,9 +39,9 @@ GameObject:
   - component: {fileID: 4289511228117974}
   - component: {fileID: 65285446061434432}
   - component: {fileID: 114324578564064842}
-  m_Layer: 0
+  m_Layer: 9
   m_Name: PlatformStart
-  m_TagString: Untagged
+  m_TagString: platform
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0

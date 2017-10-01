@@ -30,7 +30,7 @@ public class MyTimer : MonoBehaviour
         Pause = false;
     }
     
-    void Update()
+    void FixedUpdate()
     {
         if (!Pause)
         {

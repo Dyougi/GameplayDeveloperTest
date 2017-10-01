@@ -7,13 +7,20 @@ public class Platform : MonoBehaviour {
     private Transform startPosition;
     private Transform endPosition;
     private Vector3 endTranslatePlatform;
+    private MeshRenderer meshRender;
+    private BoxCollider coll;
 
     public float Speed {get; set;}
     public float Id { get; set; }
+    public GameManager.e_colorPlatform ColorPlatform { get; set; }
 
-    public enum e_platformColor { RED, BLUE, GREEN }
+    void Awake()
+    {
+        meshRender = GetComponentInChildren<MeshRenderer>();
+        coll = GetComponentInChildren<BoxCollider>();
+    }
 
-	void Start ()
+    void Start ()
     {
         Pause = false;
     }
@@ -27,6 +34,7 @@ public class Platform : MonoBehaviour {
                 if (transform.position.z < endTranslatePlatform.z)
                 {
                     GameManager.Instance.DestroyPlatform(this.gameObject);
+                    //Debug.Log("DESTROY Platform id: " + Id);
                     Destroy(this.gameObject);
                 }
                 transform.Translate(Vector3.back * Time.deltaTime * Speed);
@@ -44,11 +52,6 @@ public class Platform : MonoBehaviour {
             StartCoroutine(TranslatePlatformToStart(offset));
     }
 
-    public void ChangeColor(e_platformColor newColor)
-    {
-
-    }
-
     IEnumerator TranslatePlatformToStart(Vector3 offset)
     {
         float ElapsedTime = 0.0f;
@@ -63,6 +66,22 @@ public class Platform : MonoBehaviour {
         }
         Vector3 newPos = new Vector3(endPosition.position.x, endPosition.position.y, transform.position.z);
         transform.position = newPos;
+    }
+
+    public void ChangeOpacity(bool opacity)
+    {
+        Color newColor;
+        if (opacity)
+        {
+            newColor = new Color(meshRender.material.color.r, meshRender.material.color.g, meshRender.material.color.b, 0.3f);
+            coll.enabled = false;
+        }
+        else
+        {
+            newColor = new Color(meshRender.material.color.r, meshRender.material.color.g, meshRender.material.color.b, 1f);
+            coll.enabled = true;
+        }
+        meshRender.material.color = newColor;
     }
 
     public bool Pause { get; set; }
