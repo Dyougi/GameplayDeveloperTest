@@ -5,10 +5,6 @@ using UnityEngine.EventSystems;
 
 public class PlayerController : MonoBehaviour {
 
-    public delegate void PlayerAction();
-    public static event PlayerAction OnJump;
-    public static event PlayerAction OnLand;
-
     [SerializeField]
     Transform platformCheck;
 
@@ -19,6 +15,10 @@ public class PlayerController : MonoBehaviour {
     private AudioSource audioSource;
     private Vector3 playerDefaultPos;
     private bool isOnPlatform;
+
+    public delegate void PlayerAction();
+    public static event PlayerAction OnJump;
+    public static event PlayerAction OnLand;
 
     void Awake()
     {

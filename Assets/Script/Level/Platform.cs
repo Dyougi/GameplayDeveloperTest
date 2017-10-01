@@ -52,22 +52,6 @@ public class Platform : MonoBehaviour {
             StartCoroutine(TranslatePlatformToStart(offset));
     }
 
-    IEnumerator TranslatePlatformToStart(Vector3 offset)
-    {
-        float ElapsedTime = 0.0f;
-        while (ElapsedTime <= 1.0f)
-        {
-            Vector3 lerpVec = Vector3.Lerp(startPosition.position, endPosition.position + offset, ElapsedTime);
-            if (GameManager.Instance.GameStarted)
-                lerpVec.z = transform.position.z;
-            transform.position = lerpVec;
-            ElapsedTime += Time.deltaTime;
-            yield return null;
-        }
-        Vector3 newPos = new Vector3(endPosition.position.x, endPosition.position.y, transform.position.z);
-        transform.position = newPos;
-    }
-
     public void ChangeOpacity(bool opacity)
     {
         Color newColor;
@@ -86,4 +70,20 @@ public class Platform : MonoBehaviour {
 
     public bool Pause { get; set; }
     public GameManager.e_posPlatform PosPlatform { get; set; }
+
+    IEnumerator TranslatePlatformToStart(Vector3 offset)
+    {
+        float ElapsedTime = 0.0f;
+        while (ElapsedTime <= 1.0f)
+        {
+            Vector3 lerpVec = Vector3.Lerp(startPosition.position, endPosition.position + offset, ElapsedTime);
+            if (GameManager.Instance.GameStarted)
+                lerpVec.z = transform.position.z;
+            transform.position = lerpVec;
+            ElapsedTime += Time.deltaTime;
+            yield return null;
+        }
+        Vector3 newPos = new Vector3(endPosition.position.x, endPosition.position.y, transform.position.z);
+        transform.position = newPos;
+    }
 }

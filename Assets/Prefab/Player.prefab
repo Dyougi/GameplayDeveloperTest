@@ -22,8 +22,8 @@ GameObject:
   - component: {fileID: 33169811022735604}
   - component: {fileID: 23651146967195176}
   - component: {fileID: 65791795994057338}
-  - component: {fileID: 54475925566241126}
   - component: {fileID: 114105145345327542}
+  - component: {fileID: 54352533779697540}
   m_Layer: 0
   m_Name: Player
   m_TagString: Untagged
@@ -112,7 +112,7 @@ MeshFilter:
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 1368978914797796}
   m_Mesh: {fileID: 10207, guid: 0000000000000000e000000000000000, type: 0}
---- !u!54 &54475925566241126
+--- !u!54 &54352533779697540
 Rigidbody:
   m_ObjectHideFlags: 1
   m_PrefabParentObject: {fileID: 0}
@@ -151,3 +151,4 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   platformCheck: {fileID: 4242771089984358}
+  jumpSound: {fileID: 8300000, guid: d6cf7bff21f78144ab8e5b0f3d77854d, type: 3}

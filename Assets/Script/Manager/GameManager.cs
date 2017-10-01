@@ -27,7 +27,7 @@ public class GameManager : MonoBehaviour {
     private PlayerController playerInstance;
 
     [SerializeField]
-    private float speedPlatform;
+    private float speedPlatformStart;
 
     [SerializeField]
     private float distanceBetweenPlatform;
@@ -65,6 +65,7 @@ public class GameManager : MonoBehaviour {
     private float startTime;
     private float initTime;
     private bool isPlayerDead;
+    private float speedPlatform;
 
     private e_colorPlatform currentColorPlatform;
 
@@ -74,7 +75,7 @@ public class GameManager : MonoBehaviour {
     public enum e_dirRotation { LEFT, RIGHT };
     public enum e_colorPlatform { BLUE, GREEN, RED };
 
-    private void Awake()
+    void Awake()
     {
         if (instance == null)
             instance = this;
@@ -140,52 +141,16 @@ public class GameManager : MonoBehaviour {
         }
         else
         {
+            ManageInput();
+        }
+    }
+
+    void ManageInput()
+    {
 #if UNITY_IOS
  if (Input.touchCount > 0)
         {
             if (Input.GetTouch(0).phase == TouchPhase.Began && !EventSystem.current.IsPointerOverGameObject(Input.GetTouch(0).fingerId))
-            {
-                                if (isPlayerDead)
-                {
-                    isPlayerDead = false;
-                    platformEnvironment.transform.eulerAngles = Vector3.zero;
-                    playerInstance.gameObject.GetComponent<Rigidbody>().velocity = Vector3.zero;
-                    instanceInterfaceManager.ShowMenu(true);
-                    InitGame();
-                }
-                else
-                {
-                    if (initTime + 1 < MyTimer.Instance.TotalTime)
-                        StartGame();
-                }
-            }
-        }
-#endif
-
-#if UNITY_ANDROID
-
-        if (Input.touchCount > 0)
-        {
-            if (Input.GetTouch(0).phase == TouchPhase.Began && !EventSystem.current.IsPointerOverGameObject(Input.GetTouch(0).fingerId))
-            {
-                                if (isPlayerDead)
-                {
-                    isPlayerDead = false;
-                    platformEnvironment.transform.eulerAngles = Vector3.zero;
-                    playerInstance.gameObject.GetComponent<Rigidbody>().velocity = Vector3.zero;
-                    instanceInterfaceManager.ShowMenu(true);
-                    InitGame();
-                }
-                else
-                {
-                    if (initTime + 1 < MyTimer.Instance.TotalTime)
-                        StartGame();
-                }
-            }
-        }
-#endif
-#if UNITY_EDITOR
-            if (Input.GetKeyDown("a"))
             {
                 if (isPlayerDead)
                 {
@@ -204,12 +169,60 @@ public class GameManager : MonoBehaviour {
                         StartGame();
                 }
             }
-#endif
         }
+#endif
+
+#if UNITY_ANDROID
+
+        if (Input.touchCount > 0)
+        {
+            if (Input.GetTouch(0).phase == TouchPhase.Began && !EventSystem.current.IsPointerOverGameObject(Input.GetTouch(0).fingerId))
+            {
+                if (isPlayerDead)
+                {
+                    if (initTime + 1 < MyTimer.Instance.TotalTime)
+                    {
+                        isPlayerDead = false;
+                        platformEnvironment.transform.eulerAngles = Vector3.zero;
+                        playerInstance.gameObject.GetComponent<Rigidbody>().velocity = Vector3.zero;
+                        instanceInterfaceManager.ShowMenu(true);
+                        InitGame();
+                    }
+                }
+                else
+                {
+                    if (initTime + 1 < MyTimer.Instance.TotalTime)
+                        StartGame();
+                }
+            }
+        }
+#endif
+#if UNITY_EDITOR
+        if (Input.GetKeyDown("a"))
+        {
+            if (isPlayerDead)
+            {
+                if (initTime + 1 < MyTimer.Instance.TotalTime)
+                {
+                    isPlayerDead = false;
+                    platformEnvironment.transform.eulerAngles = Vector3.zero;
+                    playerInstance.gameObject.GetComponent<Rigidbody>().velocity = Vector3.zero;
+                    instanceInterfaceManager.ShowMenu(true);
+                    InitGame();
+                }
+            }
+            else
+            {
+                if (initTime + 1 < MyTimer.Instance.TotalTime)
+                    StartGame();
+            }
+        }
+#endif
     }
 
     void InitGame()
     {
+        speedPlatform = speedPlatformStart;
         playerInstance.InitPlayer();
         ratePlatform = (distanceBetweenPlatform + 4) / speedPlatform;
         currentPosPlatform = e_posPlatform.BOT;
@@ -362,18 +375,18 @@ public class GameManager : MonoBehaviour {
     Color GetColorFromEnum(e_colorPlatform newColor)
     {
         Color result = Color.blue;
-        float color = 150f / 255f;
+        float color = 200f / 255f;
         if (newColor == e_colorPlatform.BLUE)
         {
-            result = new Color(0, 0, color);
+            result = new Color(0.1f, 0.1f, color);
         }
         if (newColor == e_colorPlatform.GREEN)
         {
-            result = new Color(0, color, 0);
+            result = new Color(0.1f, color, 0.1f);
         }
         if (newColor == e_colorPlatform.RED)
         {
-            result = new Color(color, 0, 0);
+            result = new Color(color, 0.1f, 0.1f);
         }
         return result;
     }

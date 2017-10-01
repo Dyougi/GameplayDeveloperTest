@@ -7,13 +7,13 @@ public class MyTimer : MonoBehaviour
 
     float totalTime;
 
-    private void Awake()
+    void Awake()
     {
         if (instance == null)
             instance = this;
         else if (instance != this)
         {
-            Debug.LogWarning("Singleton: instance here already");
+            Debug.LogWarning("Singleton " + this.name + " : instance here already");
             Destroy(gameObject);
             return;
         }
