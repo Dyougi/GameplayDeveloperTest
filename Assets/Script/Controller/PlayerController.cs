@@ -34,7 +34,7 @@ public class PlayerController : MonoBehaviour {
         isOnPlatform = true;
     }
 
-	void Update () // -9.81 real grav
+	void Update ()
     {
         if (GameManager.Instance.GameStarted)
         {
@@ -113,6 +113,7 @@ public class PlayerController : MonoBehaviour {
 
     public void InitPlayer()
     {
+        Debug.Log("InitPlayer");
         Pause = false;
         IsDead = false;
         isOnPlatform = true;

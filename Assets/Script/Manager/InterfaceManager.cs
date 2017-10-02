@@ -33,13 +33,15 @@ public class InterfaceManager : MonoBehaviour {
     GameObject bestScore;
 
     [SerializeField]
+    GameObject score;
+
+    [SerializeField]
     Sprite[] spriteButton;
 
     void Start ()
     {
         if (!PlayerPrefs.HasKey("bestScore"))
             PlayerPrefs.SetInt("bestScore", 0);
-        InitInterface();
     }
 	
 	void Update ()
@@ -49,12 +51,14 @@ public class InterfaceManager : MonoBehaviour {
 
     public void InitInterface()
     {
+        Debug.Log("InitInterface");
         bestScore.GetComponentInChildren<Text>().text = "BEST SCORE: " + PlayerPrefs.GetInt("bestScore").ToString();
-        CurrentButtonLeftColor = GameManager.e_colorPlatform.GREEN;
-        CurrentButtonRightColor = GameManager.e_colorPlatform.RED;
-        buttonLeft.GetComponent<Image>().sprite = spriteButton[(int)GameManager.e_colorPlatform.GREEN];
-        buttonRight.GetComponent<Image>().sprite = spriteButton[(int)GameManager.e_colorPlatform.RED];
-        ShowButtonsColor(false);
+        score.GetComponentInChildren<Text>().text = "0";
+        CurrentButtonLeftColor = PlatformManager.e_colorPlatform.GREEN;
+        CurrentButtonRightColor = PlatformManager.e_colorPlatform.RED;
+        buttonLeft.GetComponent<Image>().sprite = spriteButton[(int)PlatformManager.e_colorPlatform.GREEN];
+        buttonRight.GetComponent<Image>().sprite = spriteButton[(int)PlatformManager.e_colorPlatform.RED];
+        ShowIngameUI(false);
         ShowStats(false);
     }
 
@@ -65,9 +69,10 @@ public class InterfaceManager : MonoBehaviour {
         bestScore.SetActive(show);
     }
 
-    public void ShowButtonsColor(bool show)
+    public void ShowIngameUI(bool show)
     {
         buttons.SetActive(show);
+        score.SetActive(show);
     }
 
     public void ShowStats(bool show)
@@ -81,18 +86,23 @@ public class InterfaceManager : MonoBehaviour {
         time.GetComponent<Text>().text = "TIME: " + GameManager.Instance.ScoreTime.ToString("0.0") + " SEC";
     }
 
-    public void ChangeColorButtonLeft(GameManager.e_colorPlatform newColor)
+    public void UpdateScore()
+    {
+        score.GetComponent<Text>().text = GameManager.Instance.ScorePoint.ToString();
+    }
+
+    public void ChangeColorButtonLeft(PlatformManager.e_colorPlatform newColor)
     {
         buttonLeft.GetComponent<Image>().sprite = spriteButton[(int)newColor];
         CurrentButtonLeftColor = newColor;
     }
 
-    public void ChangeColorButtonRight(GameManager.e_colorPlatform newColor)
+    public void ChangeColorButtonRight(PlatformManager.e_colorPlatform newColor)
     {
         buttonRight.GetComponent<Image>().sprite = spriteButton[(int)newColor];
         CurrentButtonRightColor = newColor;
     }
 
-    public GameManager.e_colorPlatform CurrentButtonLeftColor { get; set; }
-    public GameManager.e_colorPlatform CurrentButtonRightColor { get; set; }
+    public PlatformManager.e_colorPlatform CurrentButtonLeftColor { get; set; }
+    public PlatformManager.e_colorPlatform CurrentButtonRightColor { get; set; }
 }

@@ -3,19 +3,20 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.EventSystems;
 
-public class GameManager : MonoBehaviour {
+public class GameManager : MonoBehaviour
+{
 
-    [SerializeField]
-    private Transform[] positionPlatformStart;
+    //[SerializeField]
+    //private Transform[] positionPlatformStart;
 
-    [SerializeField]
-    private Transform[] positionPlatformEnd;
+    //[SerializeField]
+    //private Transform[] positionPlatformEnd;
 
-    [SerializeField]
-    private Material[] platformMaterial;
+    //[SerializeField]
+    //private Material[] platformMaterial;
 
-    [SerializeField]
-    private Transform positionPlatformDestroy;
+    //[SerializeField]
+    //private Transform positionPlatformDestroy;
 
     [SerializeField]
     private Transform positionDeathPlayer;
@@ -45,6 +46,9 @@ public class GameManager : MonoBehaviour {
     private InterfaceManager instanceInterfaceManager;
 
     [SerializeField]
+    private PlatformManager platformManagerInstance;
+
+    [SerializeField]
     private Camera camera;
 
     [SerializeField]
@@ -54,26 +58,19 @@ public class GameManager : MonoBehaviour {
     private AudioClip startGameSound;
 
     private float ratePlatform;
-    private List<GameObject> instancePlatform;
     private AudioSource audioSource;
 
     private float lastInstanceTime;
-    private GameObject currentPlatform;
-    private GameObject secondPlatform;
-    private e_posPlatform currentPosPlatform;
-    private int idPlatform;
     private float startTime;
     private float initTime;
     private bool isPlayerDead;
     private float speedPlatform;
 
-    private e_colorPlatform currentColorPlatform;
+    //private PlatformManager.e_colorPlatform platformManagerInstance.CurrentColorPlatform;
 
     private static GameManager instance;
 
-    public enum e_posPlatform { BOT, BOTRIGHT, RIGHT, TOPRIGHT, TOP, TOPLEFT, LEFT, BOTLEFT };
     public enum e_dirRotation { LEFT, RIGHT };
-    public enum e_colorPlatform { BLUE, GREEN, RED };
 
     void Awake()
     {
@@ -93,18 +90,17 @@ public class GameManager : MonoBehaviour {
         get { return instance; }
     }
 
-    void Start ()
+    void Start()
     {
         GameStarted = false;
         Pause = false;
-        instancePlatform = new List<GameObject>();
         PlayerController.OnJump += PlayerJumped;
         PlayerController.OnLand += PlayerLanded;
         isPlayerDead = false;
         InitGame();
     }
-	
-	void Update ()
+
+    void Update()
     {
         if (GameStarted)
         {
@@ -115,26 +111,11 @@ public class GameManager : MonoBehaviour {
                 if (lastInstanceTime + ratePlatform < MyTimer.Instance.TotalTime)
                 {
                     speedPlatform += 0.05f;
-                    Debug.Log("INSTANCE " + idPlatform);
-                    GameObject currentInstance = Instantiate(platformDefault, positionPlatformStart[(int)currentPosPlatform].position, positionPlatformStart[(int)currentPosPlatform].rotation);
-                    currentInstance.name = "Platform " + idPlatform;
-                    currentInstance.transform.parent = platformEnvironment.transform;
-                    currentInstance.GetComponent<Platform>().Init(speedPlatform, positionPlatformStart[(int)currentPosPlatform], positionPlatformEnd[(int)currentPosPlatform], positionPlatformDestroy.position, Vector3.zero);
-                    currentInstance.GetComponent<Platform>().PosPlatform = currentPosPlatform;
-                    currentInstance.GetComponent<Platform>().Id = idPlatform;
-                    int randomNumber = Random.Range(0, 3);
-                    currentInstance.GetComponentInChildren<MeshRenderer>().material = platformMaterial[randomNumber];
-                    currentInstance.GetComponent<Platform>().ColorPlatform = (e_colorPlatform)randomNumber;
-                    if (currentInstance.GetComponent<Platform>().ColorPlatform != currentColorPlatform)
-                        currentInstance.GetComponent<Platform>().ChangeOpacity(true);
-                    else
-                        currentInstance.GetComponent<Platform>().ChangeOpacity(false);
-                    randomNumber = Random.Range(3, 6);
-                    currentInstance.transform.localScale = new Vector3(currentInstance.transform.localScale.x, currentInstance.transform.localScale.y, randomNumber);
-                    ratePlatform = (distanceBetweenPlatform + randomNumber) / speedPlatform;
-                    idPlatform++;
-                    instancePlatform.Add(currentInstance);
-                    GetNewPosPlatform();
+                    platformManagerInstance.UpdateSpeedPlatform(speedPlatform);
+                    int scaleRandom = Random.Range(3, 6);
+                    int colorRandom = Random.Range(0, 3);
+                    platformManagerInstance.CreatePlatform(speedPlatform, Vector3.zero, (PlatformManager.e_colorPlatform)colorRandom, scaleRandom, true);
+                    ratePlatform = (distanceBetweenPlatform + scaleRandom) / speedPlatform;
                     lastInstanceTime = MyTimer.Instance.TotalTime;
                 }
             }
@@ -222,80 +203,58 @@ public class GameManager : MonoBehaviour {
 
     void InitGame()
     {
+        Debug.Log("InitGame");
         speedPlatform = speedPlatformStart;
         playerInstance.InitPlayer();
-        ratePlatform = (distanceBetweenPlatform + 4) / speedPlatform;
-        currentPosPlatform = e_posPlatform.BOT;
-        idPlatform = 0;
+        ratePlatform = 0;
         instanceInterfaceManager.InitInterface();
         initTime = MyTimer.Instance.TotalTime;
         ScorePoint = 0;
-        currentColorPlatform = e_colorPlatform.BLUE;
-        camera.backgroundColor = GetColorFromEnum(e_colorPlatform.BLUE);
-        instancePlatform.ForEach(delegate (GameObject obj)
-        {
-            Destroy(obj);
-        });
-        instancePlatform.Clear();
+        camera.backgroundColor = GetColorFromEnum(PlatformManager.e_colorPlatform.BLUE);
+        platformManagerInstance.InitPlatform();
+        platformManagerInstance.ClearInstancesPlatform();
         InitTerrain();
     }
 
     void InitTerrain()
     {
+        Debug.Log("InitTerrain");
         float offset = -45;
         Vector3 posPlatform = Vector3.forward * offset;
-        Vector3 posPlatformStart = new Vector3(0, 0, -1);
 
-        GameObject currentInstance = Instantiate(platformStart, posPlatformStart, Quaternion.identity);
-        currentInstance.transform.parent = platformEnvironment.transform;
-        currentInstance.name = "Platform START " + idPlatform;
-        currentInstance.GetComponent<Platform>().Init(speedPlatform, positionFirstPlatform, positionFirstPlatform, positionPlatformDestroy.position, Vector3.zero, false);
-        currentInstance.GetComponent<Platform>().PosPlatform = currentPosPlatform;
-        currentInstance.GetComponent<Platform>().Id = idPlatform;
-        currentInstance.GetComponent<Platform>().ChangeOpacity(false);
-        offset += (4 + distanceBetweenPlatform);
-        idPlatform++;
-        GetNewPosPlatform();
-        instancePlatform.Add(currentInstance);
+        posPlatform += Vector3.up * 70;
+        platformManagerInstance.CreatePlatform(speedPlatform, posPlatform, PlatformManager.e_colorPlatform.BLUE, 6, false);
+
+        offset += (6 + distanceBetweenPlatform);
         posPlatform = Vector3.forward * offset;
-        int randomNumber;
+        float scaleRandom;
+        int colorRandom;
         while (offset <= 0)
         {
-            currentInstance = Instantiate(platformDefault, positionPlatformStart[(int)currentPosPlatform].position, positionPlatformStart[(int)currentPosPlatform].rotation);
-            currentInstance.transform.parent = platformEnvironment.transform;
-            currentInstance.name = "Platform START " + idPlatform;
-            currentInstance.GetComponent<Platform>().Init(speedPlatform, positionPlatformStart[(int)currentPosPlatform], positionPlatformEnd[(int)currentPosPlatform], positionPlatformDestroy.position, posPlatform);
-            currentInstance.GetComponent<Platform>().PosPlatform = currentPosPlatform;
-            currentInstance.GetComponent<Platform>().Id = idPlatform;
-            randomNumber = Random.Range(0, 3);
-            currentInstance.GetComponentInChildren<MeshRenderer>().material = platformMaterial[randomNumber];
-            currentInstance.GetComponent<Platform>().ColorPlatform = (e_colorPlatform)randomNumber;
-            idPlatform++;
-            instancePlatform.Add(currentInstance);
-            GetNewPosPlatform();
-            lastInstanceTime = (((distanceBetweenPlatform + 4) - Mathf.Abs(offset)) / speedPlatform);
-            randomNumber = Random.Range(3, 6);
-            currentInstance.transform.localScale = new Vector3(currentInstance.transform.localScale.x, currentInstance.transform.localScale.y, randomNumber);
-            offset += (randomNumber + distanceBetweenPlatform);
+            scaleRandom = Random.Range(3, 6);
+            colorRandom = Random.Range(0, 3);
+            platformManagerInstance.CreatePlatform(speedPlatform, posPlatform, (PlatformManager.e_colorPlatform)colorRandom, scaleRandom, true);
+            lastInstanceTime = (distanceBetweenPlatform + scaleRandom + offset) / speedPlatform;
+            offset += (scaleRandom + distanceBetweenPlatform);
             posPlatform = Vector3.forward * offset;
         }
-        currentPlatform = instancePlatform[0];
-        secondPlatform = instancePlatform[1];
-        UpdateStatPlatform();
+        platformManagerInstance.CurrentPlatform = platformManagerInstance.InstancesPlatform[0];
+        platformManagerInstance.SecondPlatform = platformManagerInstance.InstancesPlatform[1];
+        platformManagerInstance.UpdateOpacityPlatform();
     }
 
     bool VerifPlayerDeath()
     {
         if (playerInstance.transform.position.y < 0)
         {
+            Debug.Log("Dead");
             if (PlayerPrefs.GetInt("bestScore") < ScorePoint)
                 PlayerPrefs.SetInt("bestScore", ScorePoint);
             GameStarted = false;
-            instanceInterfaceManager.ShowButtonsColor(false);
+            instanceInterfaceManager.ShowIngameUI(false);
             instanceInterfaceManager.UpdateStats();
             instanceInterfaceManager.ShowStats(true);
             isPlayerDead = true;
-            Debug.Log("Dead !");
             initTime = MyTimer.Instance.TotalTime;
             audioSource.PlayOneShot(deathSound);
             return true;
@@ -308,83 +267,57 @@ public class GameManager : MonoBehaviour {
         StartCoroutine(DoRotatePlatformEnvironment(dir));
     }
 
-    void UpdateStatPlatform()
-    {
-        instancePlatform.ForEach(delegate(GameObject obj)
-        {
-            if (currentPlatform != obj)
-            {
-                if (obj.GetComponent<Platform>().ColorPlatform == currentColorPlatform)
-                {
-                    obj.GetComponent<Platform>().ChangeOpacity(false);
-                }
-                else
-                {
-                    obj.GetComponent<Platform>().ChangeOpacity(true);
-                }
-            }
-        });
-    }
-
-
     void PlayerLanded()
     {
-        currentPlatform = secondPlatform;
-        secondPlatform = instancePlatform[instancePlatform.IndexOf(secondPlatform) + 1];
+        platformManagerInstance.CurrentPlatform = platformManagerInstance.SecondPlatform;
+        platformManagerInstance.SecondPlatform = platformManagerInstance.InstancesPlatform[platformManagerInstance.InstancesPlatform.IndexOf(platformManagerInstance.SecondPlatform) + 1];
         ScorePoint += 2;
+        instanceInterfaceManager.UpdateScore();
     }
 
     void PlayerJumped()
     {
-        if (currentPlatform.GetComponent<Platform>().PosPlatform == 0)
+        if (platformManagerInstance.CurrentPlatform.GetComponent<Platform>().PosPlatform == 0)
         {
-            if (secondPlatform.GetComponent<Platform>().PosPlatform == (e_posPlatform)1)
+            if (platformManagerInstance.SecondPlatform.GetComponent<Platform>().PosPlatform == (PlatformManager.e_posPlatform)1)
                 RotatePlatformEnvironment(e_dirRotation.RIGHT);
             else
                 RotatePlatformEnvironment(e_dirRotation.LEFT);
             return;
         }
-        if (currentPlatform.GetComponent<Platform>().PosPlatform == (e_posPlatform)7)
+        if (platformManagerInstance.CurrentPlatform.GetComponent<Platform>().PosPlatform == (PlatformManager.e_posPlatform)7)
         {
-            if (secondPlatform.GetComponent<Platform>().PosPlatform == 0)
+            if (platformManagerInstance.SecondPlatform.GetComponent<Platform>().PosPlatform == 0)
                 RotatePlatformEnvironment(e_dirRotation.RIGHT);
             else
                 RotatePlatformEnvironment(e_dirRotation.LEFT);
             return;
         }
-        if (currentPlatform.GetComponent<Platform>().PosPlatform < secondPlatform.GetComponent<Platform>().PosPlatform)
+        if (platformManagerInstance.CurrentPlatform.GetComponent<Platform>().PosPlatform < platformManagerInstance.SecondPlatform.GetComponent<Platform>().PosPlatform)
         {
             RotatePlatformEnvironment(e_dirRotation.RIGHT);
             return;
         }
-        if (currentPlatform.GetComponent<Platform>().PosPlatform > secondPlatform.GetComponent<Platform>().PosPlatform)
+        if (platformManagerInstance.CurrentPlatform.GetComponent<Platform>().PosPlatform > platformManagerInstance.SecondPlatform.GetComponent<Platform>().PosPlatform)
         {
             RotatePlatformEnvironment(e_dirRotation.LEFT);
             return;
         }
     }
 
-    void GetNewPosPlatform()
-    {
-        if (MyRandom.ThrowOfDice(50))
-            currentPosPlatform = currentPosPlatform == e_posPlatform.BOTLEFT ? e_posPlatform.BOT : currentPosPlatform + 1;
-        else
-            currentPosPlatform = currentPosPlatform == e_posPlatform.BOT ? e_posPlatform.BOTLEFT : currentPosPlatform - 1;
-    }
-
-    Color GetColorFromEnum(e_colorPlatform newColor)
+    Color GetColorFromEnum(PlatformManager.e_colorPlatform newColor)
     {
         Color result = Color.blue;
         float color = 200f / 255f;
-        if (newColor == e_colorPlatform.BLUE)
+        if (newColor == PlatformManager.e_colorPlatform.BLUE)
         {
             result = new Color(0.1f, 0.1f, color);
         }
-        if (newColor == e_colorPlatform.GREEN)
+        if (newColor == PlatformManager.e_colorPlatform.GREEN)
         {
             result = new Color(0.1f, color, 0.1f);
         }
-        if (newColor == e_colorPlatform.RED)
+        if (newColor == PlatformManager.e_colorPlatform.RED)
         {
             result = new Color(color, 0.1f, 0.1f);
         }
@@ -392,123 +325,124 @@ public class GameManager : MonoBehaviour {
     }
     public void StartGame()
     {
-        lastInstanceTime += MyTimer.Instance.TotalTime - ratePlatform;
+        Debug.Log("StartGame");
         startTime = MyTimer.Instance.TotalTime;
+        lastInstanceTime += MyTimer.Instance.TotalTime;
         instanceInterfaceManager.ShowMenu(false);
-        instanceInterfaceManager.ShowButtonsColor(true);
+        instanceInterfaceManager.ShowIngameUI(true);
         GameStarted = true;
         audioSource.PlayOneShot(startGameSound);
     }
 
     public void ButtonLeftPressed()
     {
-        if (instanceInterfaceManager.CurrentButtonLeftColor == e_colorPlatform.BLUE &&
-            instanceInterfaceManager.CurrentButtonRightColor == e_colorPlatform.GREEN)
+        if (instanceInterfaceManager.CurrentButtonLeftColor == PlatformManager.e_colorPlatform.BLUE &&
+            instanceInterfaceManager.CurrentButtonRightColor == PlatformManager.e_colorPlatform.GREEN)
         {
-            instanceInterfaceManager.ChangeColorButtonLeft(e_colorPlatform.RED);
-            StartCoroutine(DoLerpColor(e_colorPlatform.BLUE));
-            currentColorPlatform = e_colorPlatform.BLUE;
+            instanceInterfaceManager.ChangeColorButtonLeft(PlatformManager.e_colorPlatform.RED);
+            StartCoroutine(DoLerpColor(PlatformManager.e_colorPlatform.BLUE));
+            platformManagerInstance.CurrentColorPlatform = PlatformManager.e_colorPlatform.BLUE;
         }
         else
-        if (instanceInterfaceManager.CurrentButtonLeftColor == e_colorPlatform.BLUE &&
-            instanceInterfaceManager.CurrentButtonRightColor == e_colorPlatform.RED)
+        if (instanceInterfaceManager.CurrentButtonLeftColor == PlatformManager.e_colorPlatform.BLUE &&
+            instanceInterfaceManager.CurrentButtonRightColor == PlatformManager.e_colorPlatform.RED)
         {
-            instanceInterfaceManager.ChangeColorButtonLeft(e_colorPlatform.GREEN);
-            StartCoroutine(DoLerpColor(e_colorPlatform.BLUE));
-            currentColorPlatform = e_colorPlatform.BLUE;
+            instanceInterfaceManager.ChangeColorButtonLeft(PlatformManager.e_colorPlatform.GREEN);
+            StartCoroutine(DoLerpColor(PlatformManager.e_colorPlatform.BLUE));
+            platformManagerInstance.CurrentColorPlatform = PlatformManager.e_colorPlatform.BLUE;
         }
         else
-        if (instanceInterfaceManager.CurrentButtonLeftColor == e_colorPlatform.GREEN &&
-            instanceInterfaceManager.CurrentButtonRightColor == e_colorPlatform.BLUE)
+        if (instanceInterfaceManager.CurrentButtonLeftColor == PlatformManager.e_colorPlatform.GREEN &&
+            instanceInterfaceManager.CurrentButtonRightColor == PlatformManager.e_colorPlatform.BLUE)
         {
-            instanceInterfaceManager.ChangeColorButtonLeft(e_colorPlatform.RED);
-            StartCoroutine(DoLerpColor(e_colorPlatform.GREEN));
-            currentColorPlatform = e_colorPlatform.GREEN;
+            instanceInterfaceManager.ChangeColorButtonLeft(PlatformManager.e_colorPlatform.RED);
+            StartCoroutine(DoLerpColor(PlatformManager.e_colorPlatform.GREEN));
+            platformManagerInstance.CurrentColorPlatform = PlatformManager.e_colorPlatform.GREEN;
         }
         else
-        if (instanceInterfaceManager.CurrentButtonLeftColor == e_colorPlatform.GREEN &&
-            instanceInterfaceManager.CurrentButtonRightColor == e_colorPlatform.RED)
+        if (instanceInterfaceManager.CurrentButtonLeftColor == PlatformManager.e_colorPlatform.GREEN &&
+            instanceInterfaceManager.CurrentButtonRightColor == PlatformManager.e_colorPlatform.RED)
         {
-            instanceInterfaceManager.ChangeColorButtonLeft(e_colorPlatform.BLUE);
-            StartCoroutine(DoLerpColor(e_colorPlatform.GREEN));
-            currentColorPlatform = e_colorPlatform.GREEN;
+            instanceInterfaceManager.ChangeColorButtonLeft(PlatformManager.e_colorPlatform.BLUE);
+            StartCoroutine(DoLerpColor(PlatformManager.e_colorPlatform.GREEN));
+            platformManagerInstance.CurrentColorPlatform = PlatformManager.e_colorPlatform.GREEN;
         }
         else
-        if (instanceInterfaceManager.CurrentButtonLeftColor == e_colorPlatform.RED &&
-            instanceInterfaceManager.CurrentButtonRightColor == e_colorPlatform.BLUE)
+        if (instanceInterfaceManager.CurrentButtonLeftColor == PlatformManager.e_colorPlatform.RED &&
+            instanceInterfaceManager.CurrentButtonRightColor == PlatformManager.e_colorPlatform.BLUE)
         {
-            instanceInterfaceManager.ChangeColorButtonLeft(e_colorPlatform.GREEN);
-            StartCoroutine(DoLerpColor(e_colorPlatform.RED));
-            currentColorPlatform = e_colorPlatform.RED;
+            instanceInterfaceManager.ChangeColorButtonLeft(PlatformManager.e_colorPlatform.GREEN);
+            StartCoroutine(DoLerpColor(PlatformManager.e_colorPlatform.RED));
+            platformManagerInstance.CurrentColorPlatform = PlatformManager.e_colorPlatform.RED;
         }
         else
-        if (instanceInterfaceManager.CurrentButtonLeftColor == e_colorPlatform.RED &&
-            instanceInterfaceManager.CurrentButtonRightColor == e_colorPlatform.GREEN)
+        if (instanceInterfaceManager.CurrentButtonLeftColor == PlatformManager.e_colorPlatform.RED &&
+            instanceInterfaceManager.CurrentButtonRightColor == PlatformManager.e_colorPlatform.GREEN)
         {
-            instanceInterfaceManager.ChangeColorButtonLeft(e_colorPlatform.BLUE);
-            StartCoroutine(DoLerpColor(e_colorPlatform.RED));
-            currentColorPlatform = e_colorPlatform.RED;
+            instanceInterfaceManager.ChangeColorButtonLeft(PlatformManager.e_colorPlatform.BLUE);
+            StartCoroutine(DoLerpColor(PlatformManager.e_colorPlatform.RED));
+            platformManagerInstance.CurrentColorPlatform = PlatformManager.e_colorPlatform.RED;
         }
-        UpdateStatPlatform();
+        platformManagerInstance.UpdateOpacityPlatform();
     }
 
     public void ButtonRightPressed()
     {
-        StartCoroutine(DoLerpColor(currentColorPlatform));
-        if (instanceInterfaceManager.CurrentButtonLeftColor == e_colorPlatform.BLUE &&
-            instanceInterfaceManager.CurrentButtonRightColor == e_colorPlatform.GREEN)
+        StartCoroutine(DoLerpColor(platformManagerInstance.CurrentColorPlatform));
+        if (instanceInterfaceManager.CurrentButtonLeftColor == PlatformManager.e_colorPlatform.BLUE &&
+            instanceInterfaceManager.CurrentButtonRightColor == PlatformManager.e_colorPlatform.GREEN)
         {
-            instanceInterfaceManager.ChangeColorButtonRight(e_colorPlatform.RED);
-            StartCoroutine(DoLerpColor(e_colorPlatform.GREEN));
-            currentColorPlatform = e_colorPlatform.GREEN;
+            instanceInterfaceManager.ChangeColorButtonRight(PlatformManager.e_colorPlatform.RED);
+            StartCoroutine(DoLerpColor(PlatformManager.e_colorPlatform.GREEN));
+            platformManagerInstance.CurrentColorPlatform = PlatformManager.e_colorPlatform.GREEN;
         }
         else
-        if (instanceInterfaceManager.CurrentButtonLeftColor == e_colorPlatform.BLUE &&
-            instanceInterfaceManager.CurrentButtonRightColor == e_colorPlatform.RED)
+        if (instanceInterfaceManager.CurrentButtonLeftColor == PlatformManager.e_colorPlatform.BLUE &&
+            instanceInterfaceManager.CurrentButtonRightColor == PlatformManager.e_colorPlatform.RED)
         {
-            instanceInterfaceManager.ChangeColorButtonRight(e_colorPlatform.GREEN);
-            StartCoroutine(DoLerpColor(e_colorPlatform.GREEN));
-            StartCoroutine(DoLerpColor(e_colorPlatform.RED));
-            currentColorPlatform = e_colorPlatform.RED;
+            instanceInterfaceManager.ChangeColorButtonRight(PlatformManager.e_colorPlatform.GREEN);
+            StartCoroutine(DoLerpColor(PlatformManager.e_colorPlatform.GREEN));
+            StartCoroutine(DoLerpColor(PlatformManager.e_colorPlatform.RED));
+            platformManagerInstance.CurrentColorPlatform = PlatformManager.e_colorPlatform.RED;
         }
         else
-        if (instanceInterfaceManager.CurrentButtonLeftColor == e_colorPlatform.GREEN &&
-            instanceInterfaceManager.CurrentButtonRightColor == e_colorPlatform.BLUE)
+        if (instanceInterfaceManager.CurrentButtonLeftColor == PlatformManager.e_colorPlatform.GREEN &&
+            instanceInterfaceManager.CurrentButtonRightColor == PlatformManager.e_colorPlatform.BLUE)
         {
-            instanceInterfaceManager.ChangeColorButtonRight(e_colorPlatform.RED);
-            StartCoroutine(DoLerpColor(e_colorPlatform.BLUE));
-            currentColorPlatform = e_colorPlatform.BLUE;
+            instanceInterfaceManager.ChangeColorButtonRight(PlatformManager.e_colorPlatform.RED);
+            StartCoroutine(DoLerpColor(PlatformManager.e_colorPlatform.BLUE));
+            platformManagerInstance.CurrentColorPlatform = PlatformManager.e_colorPlatform.BLUE;
         }
         else
-        if (instanceInterfaceManager.CurrentButtonLeftColor == e_colorPlatform.GREEN &&
-            instanceInterfaceManager.CurrentButtonRightColor == e_colorPlatform.RED)
+        if (instanceInterfaceManager.CurrentButtonLeftColor == PlatformManager.e_colorPlatform.GREEN &&
+            instanceInterfaceManager.CurrentButtonRightColor == PlatformManager.e_colorPlatform.RED)
         {
-            instanceInterfaceManager.ChangeColorButtonRight(e_colorPlatform.BLUE);
-            StartCoroutine(DoLerpColor(e_colorPlatform.RED));
-            currentColorPlatform = e_colorPlatform.RED;
+            instanceInterfaceManager.ChangeColorButtonRight(PlatformManager.e_colorPlatform.BLUE);
+            StartCoroutine(DoLerpColor(PlatformManager.e_colorPlatform.RED));
+            platformManagerInstance.CurrentColorPlatform = PlatformManager.e_colorPlatform.RED;
         }
         else
-        if (instanceInterfaceManager.CurrentButtonLeftColor == e_colorPlatform.RED &&
-            instanceInterfaceManager.CurrentButtonRightColor == e_colorPlatform.BLUE)
+        if (instanceInterfaceManager.CurrentButtonLeftColor == PlatformManager.e_colorPlatform.RED &&
+            instanceInterfaceManager.CurrentButtonRightColor == PlatformManager.e_colorPlatform.BLUE)
         {
-            instanceInterfaceManager.ChangeColorButtonRight(e_colorPlatform.GREEN);
-            StartCoroutine(DoLerpColor(e_colorPlatform.BLUE));
-            currentColorPlatform = e_colorPlatform.BLUE;
+            instanceInterfaceManager.ChangeColorButtonRight(PlatformManager.e_colorPlatform.GREEN);
+            StartCoroutine(DoLerpColor(PlatformManager.e_colorPlatform.BLUE));
+            platformManagerInstance.CurrentColorPlatform = PlatformManager.e_colorPlatform.BLUE;
         }
         else
-        if (instanceInterfaceManager.CurrentButtonLeftColor == e_colorPlatform.RED &&
-            instanceInterfaceManager.CurrentButtonRightColor == e_colorPlatform.GREEN)
+        if (instanceInterfaceManager.CurrentButtonLeftColor == PlatformManager.e_colorPlatform.RED &&
+            instanceInterfaceManager.CurrentButtonRightColor == PlatformManager.e_colorPlatform.GREEN)
         {
-            instanceInterfaceManager.ChangeColorButtonRight(e_colorPlatform.BLUE);
-            StartCoroutine(DoLerpColor(e_colorPlatform.GREEN));
-            currentColorPlatform = e_colorPlatform.GREEN;
+            instanceInterfaceManager.ChangeColorButtonRight(PlatformManager.e_colorPlatform.BLUE);
+            StartCoroutine(DoLerpColor(PlatformManager.e_colorPlatform.GREEN));
+            platformManagerInstance.CurrentColorPlatform = PlatformManager.e_colorPlatform.GREEN;
         }
-        UpdateStatPlatform();
+        platformManagerInstance.UpdateOpacityPlatform();
     }
 
     public void DestroyPlatform(GameObject thisPlatform)
     {
-        instancePlatform.Remove(thisPlatform);
+        platformManagerInstance.DestroyPlatform(thisPlatform);
     }
 
     public bool Pause { get; set; }
@@ -554,10 +488,10 @@ public class GameManager : MonoBehaviour {
     }
 
 
-    IEnumerator DoLerpColor(e_colorPlatform newColorPlat)
+    IEnumerator DoLerpColor(PlatformManager.e_colorPlatform newColorPlat)
     {
         float ElapsedTime = 0.0f;
-        Color beforeColor = GetColorFromEnum(currentColorPlatform);
+        Color beforeColor = GetColorFromEnum(platformManagerInstance.CurrentColorPlatform);
         Color afterColor = GetColorFromEnum(newColorPlat);
         while (ElapsedTime <= 1.0f)
         {

@@ -12,7 +12,7 @@ public class Platform : MonoBehaviour {
 
     public float Speed {get; set;}
     public float Id { get; set; }
-    public GameManager.e_colorPlatform ColorPlatform { get; set; }
+    public PlatformManager.e_colorPlatform ColorPlatform { get; set; }
 
     void Awake()
     {
@@ -44,6 +44,7 @@ public class Platform : MonoBehaviour {
 
     public void Init(float newSpeed, Transform newStartPosition, Transform newEndPosition, Vector3 newEndTranslatePlatform, Vector3 offset, bool doLerp = true)
     {
+        Debug.Log("Init Platform " + Id);
         Speed = newSpeed;
         startPosition = newStartPosition;
         endPosition = newEndPosition;
@@ -69,7 +70,7 @@ public class Platform : MonoBehaviour {
     }
 
     public bool Pause { get; set; }
-    public GameManager.e_posPlatform PosPlatform { get; set; }
+    public PlatformManager.e_posPlatform PosPlatform { get; set; }
 
     IEnumerator TranslatePlatformToStart(Vector3 offset)
     {
@@ -83,6 +84,7 @@ public class Platform : MonoBehaviour {
             ElapsedTime += Time.deltaTime;
             yield return null;
         }
+        Vector3 zPos = endPosition.position + offset;
         Vector3 newPos = new Vector3(endPosition.position.x, endPosition.position.y, transform.position.z);
         transform.position = newPos;
     }
