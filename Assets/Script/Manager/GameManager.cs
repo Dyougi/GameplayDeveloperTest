@@ -6,18 +6,6 @@ using UnityEngine.EventSystems;
 public class GameManager : MonoBehaviour
 {
 
-    //[SerializeField]
-    //private Transform[] positionPlatformStart;
-
-    //[SerializeField]
-    //private Transform[] positionPlatformEnd;
-
-    //[SerializeField]
-    //private Material[] platformMaterial;
-
-    //[SerializeField]
-    //private Transform positionPlatformDestroy;
-
     [SerializeField]
     private Transform positionDeathPlayer;
 
@@ -66,8 +54,6 @@ public class GameManager : MonoBehaviour
     private bool isPlayerDead;
     private float speedPlatform;
 
-    //private PlatformManager.e_colorPlatform platformManagerInstance.CurrentColorPlatform;
-
     private static GameManager instance;
 
     public enum e_dirRotation { LEFT, RIGHT };
@@ -112,7 +98,7 @@ public class GameManager : MonoBehaviour
                 {
                     speedPlatform += 0.05f;
                     platformManagerInstance.UpdateSpeedPlatform(speedPlatform);
-                    int scaleRandom = Random.Range(3, 6);
+                    int scaleRandom = Random.Range(4, 8);
                     int colorRandom = Random.Range(0, 3);
                     platformManagerInstance.CreatePlatform(speedPlatform, Vector3.zero, (PlatformManager.e_colorPlatform)colorRandom, scaleRandom, true);
                     ratePlatform = (distanceBetweenPlatform + scaleRandom) / speedPlatform;
@@ -231,7 +217,7 @@ public class GameManager : MonoBehaviour
         int colorRandom;
         while (offset <= 0)
         {
-            scaleRandom = Random.Range(3, 6);
+            scaleRandom = Random.Range(4, 8);
             colorRandom = Random.Range(0, 3);
             platformManagerInstance.CreatePlatform(speedPlatform, posPlatform, (PlatformManager.e_colorPlatform)colorRandom, scaleRandom, true);
             lastInstanceTime = (distanceBetweenPlatform + scaleRandom + offset) / speedPlatform;
