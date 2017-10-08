@@ -43,29 +43,12 @@ public class Platform : MonoBehaviour {
 
     public void Init(float newSpeed, Transform newStartPosition, Transform newEndPosition, Vector3 newEndTranslatePlatform, Vector3 offset, bool doLerp = true)
     {
-        Debug.Log("Init Platform " + Id);
         Speed = newSpeed;
         startPosition = newStartPosition;
         endPosition = newEndPosition;
         endTranslatePlatform = newEndTranslatePlatform;
         if (doLerp)
             StartCoroutine(TranslatePlatformToStart(offset));
-    }
-
-    public void ChangeOpacity(bool opacity)
-    {
-        Color newColor;
-        if (opacity)
-        {
-            newColor = new Color(meshRender.material.color.r, meshRender.material.color.g, meshRender.material.color.b, 0.3f);
-            coll.enabled = false;
-        }
-        else
-        {
-            newColor = new Color(meshRender.material.color.r, meshRender.material.color.g, meshRender.material.color.b, 1f);
-            coll.enabled = true;
-        }
-        meshRender.material.color = newColor;
     }
 
     public bool Pause { get; set; }

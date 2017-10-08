@@ -11,10 +11,14 @@ public class PlayerController : MonoBehaviour {
     [SerializeField]
     AudioClip jumpSound;
 
+    [SerializeField]
+    AudioClip bonusSound;
+
     private Rigidbody rb;
     private AudioSource audioSource;
     private Vector3 playerDefaultPos;
-    private bool isOnPlatform;
+    private bool isJumping;
+    private float speedRotation;
 
     public delegate void PlayerAction();
     public static event PlayerAction OnJump;
@@ -24,14 +28,14 @@ public class PlayerController : MonoBehaviour {
     {
         rb = GetComponent<Rigidbody>();
         audioSource = GetComponent<AudioSource>();
+        playerDefaultPos = transform.position;
     }
 
     void Start ()
     {
-        playerDefaultPos = transform.position;
         Pause = false;
         IsDead = false;
-        isOnPlatform = true;
+        speedRotation = 100;
     }
 
 	void Update ()
@@ -40,26 +44,33 @@ public class PlayerController : MonoBehaviour {
         {
             if (!Pause)
             {
+                if (isJumping && rb.velocity.y < 0)
+                {
+                    if (CheckIfNear(platformCheck.position, 0.05f))
+                    {
+                        if (OnLand != null)
+                            OnLand();
+                        isJumping = false;
+                    }
+                }
+                transform.GetChild(0).Rotate(Vector3.right * speedRotation * Time.deltaTime);
                 if (!IsDead)
                 {
                     ManageInput();
                 }
-                if (CheckIfNear(platformCheck.position, 0.1f))
-                {
-                    if (!isOnPlatform)
-                    {
-                        if (OnLand != null)
-                            OnLand();
-                    }
-                    isOnPlatform = true;
-                }
-                else
-                {
-                    isOnPlatform = false;
-                }
             }
         }
 	}
+
+    private void OnTriggerEnter(Collider other)
+    {
+        if (other.tag == "Bonus")
+        {
+            audioSource.PlayOneShot(bonusSound, 0.4f);
+            Destroy(other.gameObject);
+            GameManager.Instance.AddScore(2);
+        }
+    }
 
     bool CheckIfNear(Vector3 position, float range)
     {
@@ -73,7 +84,7 @@ public class PlayerController : MonoBehaviour {
     void ManageInput()
     {
 #if UNITY_IOS
-                if (Input.touchCount > 0)
+        if (Input.touchCount > 0)
         {
             if (Input.GetTouch(0).phase == TouchPhase.Began && !EventSystem.current.IsPointerOverGameObject(Input.GetTouch(0).fingerId))
             {
@@ -82,7 +93,6 @@ public class PlayerController : MonoBehaviour {
         }
 #endif
 #if UNITY_ANDROID
-
         if (Input.touchCount > 0)
         {
             if (Input.GetTouch(0).phase == TouchPhase.Began && !EventSystem.current.IsPointerOverGameObject(Input.GetTouch(0).fingerId))
@@ -101,12 +111,12 @@ public class PlayerController : MonoBehaviour {
 
     void DoJump()
     {
-        if (isOnPlatform)
+        if (!isJumping)
         {
-            Debug.Log("Jump");
             audioSource.PlayOneShot(jumpSound);
             if (OnJump != null)
                 OnJump();
+            isJumping = true;
             rb.AddForce(Vector3.up * 12, ForceMode.Impulse);
         }
     }
@@ -116,7 +126,7 @@ public class PlayerController : MonoBehaviour {
         Debug.Log("InitPlayer");
         Pause = false;
         IsDead = false;
-        isOnPlatform = true;
+        isJumping = false;
         transform.position = playerDefaultPos;
     }
 

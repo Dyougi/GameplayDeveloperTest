@@ -21,22 +21,10 @@ public class InterfaceManager : MonoBehaviour {
     GameObject time;
 
     [SerializeField]
-    GameObject buttons;
-
-    [SerializeField]
-    GameObject buttonLeft;
-
-    [SerializeField]
-    GameObject buttonRight;
-
-    [SerializeField]
     GameObject bestScore;
 
     [SerializeField]
     GameObject score;
-
-    [SerializeField]
-    Sprite[] spriteButton;
 
     void Start ()
     {
@@ -54,10 +42,6 @@ public class InterfaceManager : MonoBehaviour {
         Debug.Log("InitInterface");
         bestScore.GetComponentInChildren<Text>().text = "BEST SCORE: " + PlayerPrefs.GetInt("bestScore").ToString();
         score.GetComponentInChildren<Text>().text = "0";
-        CurrentButtonLeftColor = PlatformManager.e_colorPlatform.GREEN;
-        CurrentButtonRightColor = PlatformManager.e_colorPlatform.RED;
-        buttonLeft.GetComponent<Image>().sprite = spriteButton[(int)PlatformManager.e_colorPlatform.GREEN];
-        buttonRight.GetComponent<Image>().sprite = spriteButton[(int)PlatformManager.e_colorPlatform.RED];
         ShowIngameUI(false);
         ShowStats(false);
     }
@@ -71,7 +55,6 @@ public class InterfaceManager : MonoBehaviour {
 
     public void ShowIngameUI(bool show)
     {
-        buttons.SetActive(show);
         score.SetActive(show);
     }
 
@@ -83,24 +66,12 @@ public class InterfaceManager : MonoBehaviour {
     public void UpdateStats()
     {
         point.GetComponent<Text>().text = "SCORE: " + GameManager.Instance.ScorePoint;
-        time.GetComponent<Text>().text = "TIME: " + GameManager.Instance.ScoreTime.ToString("0.0") + " SEC";
+        time.GetComponent<Text>().text = "BEST SCORE: " + PlayerPrefs.GetInt("bestScore").ToString();
     }
 
     public void UpdateScore()
     {
         score.GetComponent<Text>().text = GameManager.Instance.ScorePoint.ToString();
-    }
-
-    public void ChangeColorButtonLeft(PlatformManager.e_colorPlatform newColor)
-    {
-        buttonLeft.GetComponent<Image>().sprite = spriteButton[(int)newColor];
-        CurrentButtonLeftColor = newColor;
-    }
-
-    public void ChangeColorButtonRight(PlatformManager.e_colorPlatform newColor)
-    {
-        buttonRight.GetComponent<Image>().sprite = spriteButton[(int)newColor];
-        CurrentButtonRightColor = newColor;
     }
 
     public PlatformManager.e_colorPlatform CurrentButtonLeftColor { get; set; }
