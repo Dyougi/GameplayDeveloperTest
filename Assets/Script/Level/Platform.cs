@@ -66,7 +66,6 @@ public class Platform : MonoBehaviour {
             ElapsedTime += Time.deltaTime;
             yield return null;
         }
-        Vector3 zPos = endPosition.position + offset;
         Vector3 newPos = new Vector3(endPosition.position.x, endPosition.position.y, transform.position.z);
         transform.position = newPos;
     }

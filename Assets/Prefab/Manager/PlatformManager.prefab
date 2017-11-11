@@ -52,7 +52,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   platform: {fileID: 1984235975193104, guid: 44415d3226ad9b340bb8e73d637fee18, type: 2}
-  bonus: {fileID: 0}
+  bonus: {fileID: 1835336186018068, guid: b86beea9f93666e4da52384860fe8e9c, type: 2}
   positionPlatformStart:
   - {fileID: 0}
   - {fileID: 0}
@@ -73,4 +73,5 @@ MonoBehaviour:
   - {fileID: 0}
   platformEnvironment: {fileID: 0}
   positionPlatformDestroy: {fileID: 0}
-  platformMaterial: {fileID: 0}
+  platformMaterial: {fileID: 2100000, guid: 6c2926815662e8140b35e1d82d2b093b, type: 2}
+  otherPosPlatform: 

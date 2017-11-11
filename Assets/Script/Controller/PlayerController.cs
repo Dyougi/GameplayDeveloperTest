@@ -20,7 +20,7 @@ public class PlayerController : MonoBehaviour {
     private bool isJumping;
     private float speedRotation;
 
-    public delegate void PlayerAction();
+    public delegate void PlayerAction(Vector2 point);
     public static event PlayerAction OnJump;
     public static event PlayerAction OnLand;
 
@@ -49,7 +49,7 @@ public class PlayerController : MonoBehaviour {
                     if (CheckIfNear(platformCheck.position, 0.05f))
                     {
                         if (OnLand != null)
-                            OnLand();
+                            OnLand(Vector2.zero);
                         isJumping = false;
                     }
                 }
@@ -83,39 +83,44 @@ public class PlayerController : MonoBehaviour {
 
     void ManageInput()
     {
+        Vector2 tapPoint = Vector2.zero;
 #if UNITY_IOS
         if (Input.touchCount > 0)
         {
+            tapPoint = Input.GetTouch(0).position;
+            tapPoint.y = Screen.height - tapPoint.y;
             if (Input.GetTouch(0).phase == TouchPhase.Began && !EventSystem.current.IsPointerOverGameObject(Input.GetTouch(0).fingerId))
             {
-                DoJump();
+                DoJump(tapPoint);
             }
         }
 #endif
 #if UNITY_ANDROID
         if (Input.touchCount > 0)
         {
+            tapPoint = Input.GetTouch(0).position;
+            tapPoint.y = Screen.height - tapPoint.y;
             if (Input.GetTouch(0).phase == TouchPhase.Began && !EventSystem.current.IsPointerOverGameObject(Input.GetTouch(0).fingerId))
             {
-                DoJump();
+                DoJump(tapPoint);
             }
         }
 #endif
 #if UNITY_EDITOR
         if (Input.GetButtonDown("Jump"))
         {
-            DoJump();
+            DoJump(Vector2.zero);
         }
 #endif
     }
 
-    void DoJump()
+    void DoJump(Vector2 tapPoint)
     {
         if (!isJumping)
         {
             audioSource.PlayOneShot(jumpSound);
             if (OnJump != null)
-                OnJump();
+                OnJump(tapPoint);
             isJumping = true;
             rb.AddForce(Vector3.up * 12, ForceMode.Impulse);
         }

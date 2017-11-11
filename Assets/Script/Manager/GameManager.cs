@@ -69,7 +69,11 @@ public class GameManager : MonoBehaviour
 
     private static GameManager instance;
 
+    public int[] otherPosPlatform;
+    public int[] lastPosPlatform;
+
     public enum e_dirRotation { LEFT, RIGHT };
+    public enum e_posPlatform { BOT, BOTRIGHT, RIGHT, TOPRIGHT, TOP, TOPLEFT, LEFT, BOTLEFT };
 
     void Awake()
     {
@@ -82,6 +86,8 @@ public class GameManager : MonoBehaviour
             return;
         }
         audioSource = GetComponent<AudioSource>();
+        otherPosPlatform = new int[3];
+        lastPosPlatform = new int[3];
     }
 
     public static GameManager Instance
@@ -96,8 +102,15 @@ public class GameManager : MonoBehaviour
         PlayerController.OnJump += PlayerJumped;
         PlayerController.OnLand += PlayerLanded;
         isPlayerDead = false;
+        otherPosPlatform[0] = (int)e_posPlatform.BOT;
+        otherPosPlatform[1] = -1;
+        otherPosPlatform[2] = -1;
+        otherPosPlatform[0] = (int)e_posPlatform.BOT;
+        lastPosPlatform[1] = -1;
+        lastPosPlatform[2] = -1;
         InitGame();
     }
+
 
     void Update()
     {
@@ -223,6 +236,13 @@ public class GameManager : MonoBehaviour
 
         posPlatform += Vector3.up * 70;
         platformManagerInstance.CreatePlatform(speedPlatform, posPlatform, 6, false, false);
+        if (MyRandom.ThrowOfDice(15))
+        {
+            Debug.Log("start AddPath");
+            AddPath();
+            Debug.Log("\n");
+        }
+        GetNewPosPlatform(0);
         distanceBetweenPlatform = Random.Range(MinDistanceBetweenPlatform, MaxDistanceBetweenPlatform);
         offset += (6 + distanceBetweenPlatform);
         posPlatform = Vector3.forward * offset;
@@ -230,10 +250,25 @@ public class GameManager : MonoBehaviour
         while (offset <= 0)
         {
             scaleRandom = Random.Range(4, 8);
-            platformManagerInstance.CreatePlatform(speedPlatform, posPlatform, scaleRandom);
+            for (int count = 0; count < 3; count++)
+            {
+                Debug.Log("FOR " + count);
+                if (otherPosPlatform[count] != -1)
+                {
+                    platformManagerInstance.CreatePlatform(speedPlatform, posPlatform, scaleRandom);
+                    if (MyRandom.ThrowOfDice(15))
+                    {
+                        Debug.Log("AddPath");
+                        AddPath();
+                    }
+                    GetNewPosPlatform(count);
+                }
+                Debug.Log("\n");
+            }
             lastInstanceTime = (distanceBetweenPlatform + scaleRandom + offset) / speedPlatform;
             offset += (scaleRandom + distanceBetweenPlatform);
             posPlatform = Vector3.forward * offset;
+            Debug.Log("#####################################################");
         }
         platformManagerInstance.CurrentPlatform = platformManagerInstance.InstancesPlatform[0];
         platformManagerInstance.SecondPlatform = platformManagerInstance.InstancesPlatform[1];
@@ -263,7 +298,7 @@ public class GameManager : MonoBehaviour
         StartCoroutine(DoRotatePlatformEnvironment(dir));
     }
 
-    void PlayerLanded()
+    void PlayerLanded(Vector2 point)
     {
         platformManagerInstance.CurrentPlatform = platformManagerInstance.SecondPlatform;
         platformManagerInstance.SecondPlatform = platformManagerInstance.InstancesPlatform[platformManagerInstance.InstancesPlatform.IndexOf(platformManagerInstance.SecondPlatform) + 1];
@@ -282,8 +317,9 @@ public class GameManager : MonoBehaviour
         currentFlagPlatform++;
     }
 
-    void PlayerJumped()
+    void PlayerJumped(Vector2 point)
     {
+#if UNITY_EDITOR
         if (platformManagerInstance.CurrentPlatform.GetComponent<Platform>().PosPlatform == PlatformManager.e_posPlatform.BOT)
         {
             if (platformManagerInstance.SecondPlatform.GetComponent<Platform>().PosPlatform == PlatformManager.e_posPlatform.BOTRIGHT)
@@ -310,6 +346,17 @@ public class GameManager : MonoBehaviour
             RotatePlatformEnvironment(e_dirRotation.LEFT);
             return;
         }
+#endif
+#if UNITY_ANDROID
+        if (point.x < Screen.width / 2)
+        {
+            RotatePlatformEnvironment(e_dirRotation.LEFT);
+        }
+        else
+        {
+            RotatePlatformEnvironment(e_dirRotation.RIGHT);
+        }
+#endif
     }
 
     public void StartGame()
@@ -333,6 +380,50 @@ public class GameManager : MonoBehaviour
         ScorePoint += point;
         instanceInterfaceManager.UpdateScore();
     }
+
+    void GetNewPosPlatform(int pathId)
+    {
+        Debug.Log("GetNewPosPlatform");
+        Debug.Log("BEFORE otherPosPlatform[" + pathId + "]: " + (e_posPlatform)otherPosPlatform[pathId]);
+        if (MyRandom.ThrowOfDice(50))
+            otherPosPlatform[pathId] = otherPosPlatform[pathId] == (int)e_posPlatform.BOTLEFT ? (int)e_posPlatform.BOT : otherPosPlatform[pathId] + 1;
+        else
+            otherPosPlatform[pathId] = otherPosPlatform[pathId] == (int)e_posPlatform.BOT ? (int)e_posPlatform.BOTLEFT : otherPosPlatform[pathId] - 1;
+        if (pathId != 0)
+        {
+            if (otherPosPlatform[2] == otherPosPlatform[1] || otherPosPlatform[2] == otherPosPlatform[0])
+                otherPosPlatform[2] = -1;
+            if (otherPosPlatform[1] == otherPosPlatform[0])
+                otherPosPlatform[2] = -1;
+        }
+        Debug.Log("AFTER otherPosPlatform[pathId]: " + (e_posPlatform)otherPosPlatform[pathId]);
+    }
+
+    public bool AddPath()
+    {
+        for (int count = 1; count < 2; count++)
+        {
+            if (otherPosPlatform[count] == -1)
+            {
+                if (MyRandom.ThrowOfDice(50))
+                {
+                    otherPosPlatform[count] = otherPosPlatform[count - 1] + 1;
+                    Debug.Log("Main pos otherPosPlatform[" + (count - 1) + "]: " + (e_posPlatform)otherPosPlatform[count - 1]);
+                    Debug.Log("Maintenant set à: " + (e_posPlatform)(otherPosPlatform[count - 1] + 1));
+                }
+                else
+                {
+                    otherPosPlatform[count] = otherPosPlatform[count - 1] - 1;
+                    Debug.Log("Main pos otherPosPlatform[" + (count - 1) + "]: " + (e_posPlatform)otherPosPlatform[count - 1]);
+                    Debug.Log("Maintenant set à: " + (e_posPlatform)(otherPosPlatform[count - 1] - 1));
+                }
+
+                return true;
+            }
+        }
+        return false;
+    }
+
     public bool Pause { get; set; }
     public bool GameStarted { get; set; }
     public int ScorePoint { get; set; }
@@ -350,7 +441,7 @@ public class GameManager : MonoBehaviour
         float angle = 0.0f;
         float degree;
         Vector3 saveRotation = platformEnvironment.transform.eulerAngles;
-        while (angle <= 45.0f)
+        while (angle < 45.0f)
         {
             degree = Time.deltaTime * 400;
             if (dir == e_dirRotation.RIGHT)
