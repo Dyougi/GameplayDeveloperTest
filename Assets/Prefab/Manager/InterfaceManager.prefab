@@ -58,7 +58,4 @@ MonoBehaviour:
   time: {fileID: 0}
   bestScore: {fileID: 0}
   score: {fileID: 0}
-  pause: {fileID: 0}
-  spriteButton:
-  - {fileID: 21300000, guid: e9323b150d495724a8983d50c35af308, type: 3}
-  - {fileID: 21300000, guid: 611cdc347ea0b074dab366a10c22c193, type: 3}
+  tuto: {fileID: 0}

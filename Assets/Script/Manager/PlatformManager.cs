@@ -28,12 +28,10 @@ public class PlatformManager : MonoBehaviour
     private Material platformMaterial;
 
     private List<GameObject> instancePlatform;
-    private e_posPlatform currentPosPlatform;
     private int idPlatform;
     private float[,] arrayColor;
 
     public enum e_platformType { START, DEFAULT };
-    public enum e_posPlatform { BOT, BOTRIGHT, RIGHT, TOPRIGHT, TOP, TOPLEFT, LEFT, BOTLEFT };
     public enum e_colorPlatform { COLOR1, COLOR2, COLOR3, COLOR4, COLOR5, COLOR6, COLOR7, COLOR8 };
 
     private void Awake()
@@ -51,14 +49,6 @@ public class PlatformManager : MonoBehaviour
         };
     }
 
-    void GetNewPosPlatform()
-    {
-        if (MyRandom.ThrowOfDice(50))
-            currentPosPlatform = currentPosPlatform == e_posPlatform.BOTLEFT ? e_posPlatform.BOT : currentPosPlatform + 1;
-        else
-            currentPosPlatform = currentPosPlatform == e_posPlatform.BOT ? e_posPlatform.BOTLEFT : currentPosPlatform - 1;
-    }
-
     Color GetColorFromArray(int dim)
     {
         return new Color(arrayColor[dim, 0] / 255, arrayColor[dim, 1] / 255, arrayColor[dim, 2] / 255);
@@ -68,22 +58,21 @@ public class PlatformManager : MonoBehaviour
     {
         Debug.Log("InitPlatform");
         CurrentColorPlatform = e_colorPlatform.COLOR1;
-        currentPosPlatform = e_posPlatform.BOT;
         platformMaterial.color = GetColorFromArray(0);
         idPlatform = 0;
     }
 
-    public void CreatePlatform(float newSpeed, Vector3 newOffset, float newScale, bool doLerp = true, bool instanceBonus = true)
+    public void CreatePlatform(GameManager.e_posPlatform posPlatform, float newSpeed, Vector3 newOffset, float newScale, bool doLerp = true, bool instanceBonus = true)
     {
         Vector3 platformStartPosition;
         if (!doLerp)
-            platformStartPosition = positionPlatformStart[(int)currentPosPlatform].position + newOffset;
+            platformStartPosition = positionPlatformStart[(int)posPlatform].position + newOffset;
         else
-            platformStartPosition = positionPlatformStart[(int)currentPosPlatform].position;
-        GameObject currentInstance = Instantiate(platform, platformStartPosition, positionPlatformStart[(int)currentPosPlatform].rotation);
+            platformStartPosition = positionPlatformStart[(int)posPlatform].position;
+        GameObject currentInstance = Instantiate(platform, platformStartPosition, positionPlatformStart[(int)posPlatform].rotation);
         currentInstance.name = "Platform " + idPlatform;
         currentInstance.transform.parent = platformEnvironment.transform;
-        currentInstance.GetComponent<Platform>().PosPlatform = currentPosPlatform;
+        currentInstance.GetComponent<Platform>().PosPlatform = posPlatform;
         currentInstance.GetComponent<Platform>().Id = idPlatform;
         currentInstance.GetComponent<Platform>().ColorPlatform = CurrentColorPlatform;
         currentInstance.GetComponentInChildren<MeshRenderer>().material = platformMaterial;
@@ -97,11 +86,10 @@ public class PlatformManager : MonoBehaviour
                 currentInstanceBonus.transform.localPosition += offset;
             }
         }
-        currentInstance.GetComponent<Platform>().Init(newSpeed, positionPlatformStart[(int)currentPosPlatform], positionPlatformEnd[(int)currentPosPlatform], positionPlatformDestroy.position, newOffset, doLerp);
+        currentInstance.GetComponent<Platform>().Init(newSpeed, positionPlatformStart[(int)posPlatform], positionPlatformEnd[(int)posPlatform], positionPlatformDestroy.position, newOffset, doLerp);
         currentInstance.transform.GetChild(0).localScale = new Vector3(currentInstance.transform.GetChild(0).localScale.x, currentInstance.transform.GetChild(0).localScale.y, newScale);
         instancePlatform.Add(currentInstance);
         idPlatform++;
-        GetNewPosPlatform();
     }
 
     public void UpdatePausePlatform(bool pause)

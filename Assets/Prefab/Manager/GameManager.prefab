@@ -136,8 +136,8 @@ MonoBehaviour:
   positionFirstPlatform: {fileID: 0}
   playerInstance: {fileID: 0}
   speedPlatformStart: 5
-  MinDistanceBetweenPlatform: 0.5
-  MaxDistanceBetweenPlatform: 1.5
+  minDistanceBetweenPlatform: 0
+  maxDistanceBetweenPlatform: 0.5
   flagPlatformStart: 5
   stepPlatform: 8
   platformDefault: {fileID: 1984235975193104, guid: 44415d3226ad9b340bb8e73d637fee18,

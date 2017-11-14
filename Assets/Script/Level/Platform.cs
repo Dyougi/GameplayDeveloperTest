@@ -7,18 +7,10 @@ public class Platform : MonoBehaviour {
     private Transform startPosition;
     private Transform endPosition;
     private Vector3 endTranslatePlatform;
-    private MeshRenderer meshRender;
-    private BoxCollider coll;
 
     public float Speed {get; set;}
     public float Id { get; set; }
     public PlatformManager.e_colorPlatform ColorPlatform { get; set; }
-
-    void Awake()
-    {
-        meshRender = GetComponentInChildren<MeshRenderer>();
-        coll = GetComponentInChildren<BoxCollider>();
-    }
 
     void Start ()
     {
@@ -52,7 +44,7 @@ public class Platform : MonoBehaviour {
     }
 
     public bool Pause { get; set; }
-    public PlatformManager.e_posPlatform PosPlatform { get; set; }
+    public GameManager.e_posPlatform PosPlatform { get; set; }
 
     IEnumerator TranslatePlatformToStart(Vector3 offset)
     {

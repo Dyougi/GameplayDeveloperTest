@@ -26,6 +26,9 @@ public class InterfaceManager : MonoBehaviour {
     [SerializeField]
     GameObject score;
 
+    [SerializeField]
+    GameObject tuto;
+
     void Start ()
     {
         if (!PlayerPrefs.HasKey("bestScore"))
@@ -51,6 +54,7 @@ public class InterfaceManager : MonoBehaviour {
         menuTitle.SetActive(show);
         menuPlay.SetActive(show);
         bestScore.SetActive(show);
+        tuto.SetActive(show);
     }
 
     public void ShowIngameUI(bool show)

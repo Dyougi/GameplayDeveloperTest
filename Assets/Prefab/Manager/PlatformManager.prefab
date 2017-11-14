@@ -74,4 +74,3 @@ MonoBehaviour:
   platformEnvironment: {fileID: 0}
   positionPlatformDestroy: {fileID: 0}
   platformMaterial: {fileID: 2100000, guid: 6c2926815662e8140b35e1d82d2b093b, type: 2}
-  otherPosPlatform: 

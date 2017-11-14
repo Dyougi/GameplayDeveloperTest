@@ -20,9 +20,11 @@ public class PlayerController : MonoBehaviour {
     private bool isJumping;
     private float speedRotation;
 
-    public delegate void PlayerAction(Vector2 point);
+    public delegate void PlayerAction(e_jump jump);
     public static event PlayerAction OnJump;
     public static event PlayerAction OnLand;
+
+    public enum e_jump { RIGHT, LEFT, NONE};
 
     void Awake()
     {
@@ -49,7 +51,7 @@ public class PlayerController : MonoBehaviour {
                     if (CheckIfNear(platformCheck.position, 0.05f))
                     {
                         if (OnLand != null)
-                            OnLand(Vector2.zero);
+                            OnLand(e_jump.NONE);
                         isJumping = false;
                     }
                 }
@@ -91,7 +93,10 @@ public class PlayerController : MonoBehaviour {
             tapPoint.y = Screen.height - tapPoint.y;
             if (Input.GetTouch(0).phase == TouchPhase.Began && !EventSystem.current.IsPointerOverGameObject(Input.GetTouch(0).fingerId))
             {
-                DoJump(tapPoint);
+                if (tapPoint.x < Screen.width / 2)
+                    DoJump(e_jump.LEFT);
+                else
+                    DoJump(e_jump.RIGHT);
             }
         }
 #endif
@@ -102,25 +107,34 @@ public class PlayerController : MonoBehaviour {
             tapPoint.y = Screen.height - tapPoint.y;
             if (Input.GetTouch(0).phase == TouchPhase.Began && !EventSystem.current.IsPointerOverGameObject(Input.GetTouch(0).fingerId))
             {
-                DoJump(tapPoint);
+                if (tapPoint.x < Screen.width / 2)
+                    DoJump(e_jump.LEFT);
+                else
+                    DoJump(e_jump.RIGHT);
             }
         }
 #endif
 #if UNITY_EDITOR
-        if (Input.GetButtonDown("Jump"))
+        if (Input.GetButtonDown("JumpLeft"))
         {
-            DoJump(Vector2.zero);
+            DoJump(e_jump.LEFT);
+        }
+        if (Input.GetButtonDown("JumpRight"))
+        {
+            DoJump(e_jump.RIGHT);
         }
 #endif
     }
 
-    void DoJump(Vector2 tapPoint)
+    void DoJump(e_jump jump)
     {
         if (!isJumping)
         {
             audioSource.PlayOneShot(jumpSound);
             if (OnJump != null)
-                OnJump(tapPoint);
+            {
+                OnJump(jump);
+            }
             isJumping = true;
             rb.AddForce(Vector3.up * 12, ForceMode.Impulse);
         }

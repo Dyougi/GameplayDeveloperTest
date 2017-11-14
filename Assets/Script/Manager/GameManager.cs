@@ -19,10 +19,10 @@ public class GameManager : MonoBehaviour
     private float speedPlatformStart;
 
     [SerializeField]
-    private float MinDistanceBetweenPlatform;
+    private float minDistanceBetweenPlatform;
 
     [SerializeField]
-    private float MaxDistanceBetweenPlatform;
+    private float maxDistanceBetweenPlatform;
 
     [SerializeField]
     private int flagPlatformStart;
@@ -66,11 +66,12 @@ public class GameManager : MonoBehaviour
     private int flagPlatform;
     private int currentStepPlatform;
     private float distanceBetweenPlatform;
+    private float currentMinDistanceBetweenPlatform;
+    private float currentMaxDistanceBetweenPlatform;
 
     private static GameManager instance;
 
-    public int[] otherPosPlatform;
-    public int[] lastPosPlatform;
+    private PathPlatform[] pathPlatform;
 
     public enum e_dirRotation { LEFT, RIGHT };
     public enum e_posPlatform { BOT, BOTRIGHT, RIGHT, TOPRIGHT, TOP, TOPLEFT, LEFT, BOTLEFT };
@@ -86,8 +87,7 @@ public class GameManager : MonoBehaviour
             return;
         }
         audioSource = GetComponent<AudioSource>();
-        otherPosPlatform = new int[3];
-        lastPosPlatform = new int[3];
+        pathPlatform = new PathPlatform[3];
     }
 
     public static GameManager Instance
@@ -102,12 +102,9 @@ public class GameManager : MonoBehaviour
         PlayerController.OnJump += PlayerJumped;
         PlayerController.OnLand += PlayerLanded;
         isPlayerDead = false;
-        otherPosPlatform[0] = (int)e_posPlatform.BOT;
-        otherPosPlatform[1] = -1;
-        otherPosPlatform[2] = -1;
-        otherPosPlatform[0] = (int)e_posPlatform.BOT;
-        lastPosPlatform[1] = -1;
-        lastPosPlatform[2] = -1;
+        pathPlatform[0] = new PathPlatform(0, true);
+        pathPlatform[1] = new PathPlatform(1);
+        pathPlatform[2] = new PathPlatform(2);
         InitGame();
     }
 
@@ -123,8 +120,17 @@ public class GameManager : MonoBehaviour
                 if (lastInstanceTime + ratePlatform < MyTimer.Instance.TotalTime)
                 {
                     int scaleRandom = Random.Range(4, 8);
-                    platformManagerInstance.CreatePlatform(speedPlatform, Vector3.zero, scaleRandom);
-                    distanceBetweenPlatform = Random.Range(MinDistanceBetweenPlatform, MaxDistanceBetweenPlatform);
+                    if (MyRandom.ThrowOfDice(30))
+                        AddPath();
+                    for (int count = 0; count < 2; count++)
+                    {
+                        if (pathPlatform[count].used == true)
+                        {
+                            platformManagerInstance.CreatePlatform(pathPlatform[count].currentPosPlatform, speedPlatform, Vector3.zero, scaleRandom);
+                            GetNewPosPlatform(count);
+                        }
+                    }
+                    distanceBetweenPlatform = Random.Range(currentMinDistanceBetweenPlatform, currentMaxDistanceBetweenPlatform);
                     ratePlatform = (distanceBetweenPlatform + scaleRandom) / speedPlatform;
                     lastInstanceTime = MyTimer.Instance.TotalTime;
                 }
@@ -141,7 +147,7 @@ public class GameManager : MonoBehaviour
 #if UNITY_IOS
  if (Input.touchCount > 0)
         {
-            if (Input.GetTouch(0).phase == TouchPhase.Began && !EventSystem.current.IsPointerOverGameObject(Input.GetTouch(0).fingerId))
+            if (Input.GetTouch(0).phase == TouchPhase.Began)
             {
                 if (isPlayerDead)
                 {
@@ -167,7 +173,7 @@ public class GameManager : MonoBehaviour
 
         if (Input.touchCount > 0)
         {
-            if (Input.GetTouch(0).phase == TouchPhase.Began && !EventSystem.current.IsPointerOverGameObject(Input.GetTouch(0).fingerId))
+            if (Input.GetTouch(0).phase == TouchPhase.Began)
             {
                 if (isPlayerDead)
                 {
@@ -225,6 +231,11 @@ public class GameManager : MonoBehaviour
         flagPlatform = flagPlatformStart;
         platformManagerInstance.InitPlatform();
         platformManagerInstance.ClearInstancesPlatform();
+        pathPlatform[0].currentPosPlatform = e_posPlatform.BOT;
+        pathPlatform[1].used = false;
+        pathPlatform[2].used = false;
+        currentMinDistanceBetweenPlatform = minDistanceBetweenPlatform;
+        currentMaxDistanceBetweenPlatform = maxDistanceBetweenPlatform;
         InitTerrain();
     }
 
@@ -235,44 +246,33 @@ public class GameManager : MonoBehaviour
         Vector3 posPlatform = Vector3.forward * offset;
 
         posPlatform += Vector3.up * 70;
-        platformManagerInstance.CreatePlatform(speedPlatform, posPlatform, 6, false, false);
-        if (MyRandom.ThrowOfDice(15))
-        {
-            Debug.Log("start AddPath");
-            AddPath();
-            Debug.Log("\n");
-        }
+        platformManagerInstance.CreatePlatform(pathPlatform[0].currentPosPlatform, speedPlatform, posPlatform, 6, false, false);
         GetNewPosPlatform(0);
-        distanceBetweenPlatform = Random.Range(MinDistanceBetweenPlatform, MaxDistanceBetweenPlatform);
+        distanceBetweenPlatform = Random.Range(currentMinDistanceBetweenPlatform, currentMaxDistanceBetweenPlatform);
         offset += (6 + distanceBetweenPlatform);
         posPlatform = Vector3.forward * offset;
         float scaleRandom;
         while (offset <= 0)
         {
             scaleRandom = Random.Range(4, 8);
-            for (int count = 0; count < 3; count++)
+            if (MyRandom.ThrowOfDice(30))
+                AddPath();
+            for (int count = 0; count < 2; count++)
             {
-                Debug.Log("FOR " + count);
-                if (otherPosPlatform[count] != -1)
+                if (pathPlatform[count].used == true)
                 {
-                    platformManagerInstance.CreatePlatform(speedPlatform, posPlatform, scaleRandom);
-                    if (MyRandom.ThrowOfDice(15))
-                    {
-                        Debug.Log("AddPath");
-                        AddPath();
-                    }
+                    platformManagerInstance.CreatePlatform(pathPlatform[count].currentPosPlatform, speedPlatform, posPlatform, scaleRandom);
                     GetNewPosPlatform(count);
                 }
-                Debug.Log("\n");
             }
             lastInstanceTime = (distanceBetweenPlatform + scaleRandom + offset) / speedPlatform;
             offset += (scaleRandom + distanceBetweenPlatform);
             posPlatform = Vector3.forward * offset;
-            Debug.Log("#####################################################");
         }
         platformManagerInstance.CurrentPlatform = platformManagerInstance.InstancesPlatform[0];
         platformManagerInstance.SecondPlatform = platformManagerInstance.InstancesPlatform[1];
     }
+
 
     bool VerifPlayerDeath()
     {
@@ -298,7 +298,7 @@ public class GameManager : MonoBehaviour
         StartCoroutine(DoRotatePlatformEnvironment(dir));
     }
 
-    void PlayerLanded(Vector2 point)
+    void PlayerLanded(PlayerController.e_jump jump)
     {
         platformManagerInstance.CurrentPlatform = platformManagerInstance.SecondPlatform;
         platformManagerInstance.SecondPlatform = platformManagerInstance.InstancesPlatform[platformManagerInstance.InstancesPlatform.IndexOf(platformManagerInstance.SecondPlatform) + 1];
@@ -313,42 +313,15 @@ public class GameManager : MonoBehaviour
             flagPlatform += 10;
             currentFlagPlatform = 0;
             audioSource.PlayOneShot(stepSound);
+            currentMinDistanceBetweenPlatform += 0.2f;
+            currentMaxDistanceBetweenPlatform += 0.5f;
         }
         currentFlagPlatform++;
     }
 
-    void PlayerJumped(Vector2 point)
+    void PlayerJumped(PlayerController.e_jump jump)
     {
-#if UNITY_EDITOR
-        if (platformManagerInstance.CurrentPlatform.GetComponent<Platform>().PosPlatform == PlatformManager.e_posPlatform.BOT)
-        {
-            if (platformManagerInstance.SecondPlatform.GetComponent<Platform>().PosPlatform == PlatformManager.e_posPlatform.BOTRIGHT)
-                RotatePlatformEnvironment(e_dirRotation.RIGHT);
-            else
-                RotatePlatformEnvironment(e_dirRotation.LEFT);
-            return;
-        }
-        if (platformManagerInstance.CurrentPlatform.GetComponent<Platform>().PosPlatform == PlatformManager.e_posPlatform.BOTLEFT)
-        {
-            if (platformManagerInstance.SecondPlatform.GetComponent<Platform>().PosPlatform == PlatformManager.e_posPlatform.BOT)
-                RotatePlatformEnvironment(e_dirRotation.RIGHT);
-            else
-                RotatePlatformEnvironment(e_dirRotation.LEFT);
-            return;
-        }
-        if (platformManagerInstance.CurrentPlatform.GetComponent<Platform>().PosPlatform < platformManagerInstance.SecondPlatform.GetComponent<Platform>().PosPlatform)
-        {
-            RotatePlatformEnvironment(e_dirRotation.RIGHT);
-            return;
-        }
-        if (platformManagerInstance.CurrentPlatform.GetComponent<Platform>().PosPlatform > platformManagerInstance.SecondPlatform.GetComponent<Platform>().PosPlatform)
-        {
-            RotatePlatformEnvironment(e_dirRotation.LEFT);
-            return;
-        }
-#endif
-#if UNITY_ANDROID
-        if (point.x < Screen.width / 2)
+        if (jump == PlayerController.e_jump.LEFT)
         {
             RotatePlatformEnvironment(e_dirRotation.LEFT);
         }
@@ -356,7 +329,39 @@ public class GameManager : MonoBehaviour
         {
             RotatePlatformEnvironment(e_dirRotation.RIGHT);
         }
-#endif
+    }
+
+    void GetNewPosPlatform(int pathID)
+    {
+        pathPlatform[pathID].lastPosPlatform = pathPlatform[pathID].currentPosPlatform;
+        if (MyRandom.ThrowOfDice(50))
+            pathPlatform[pathID].currentPosPlatform = pathPlatform[pathID].currentPosPlatform == e_posPlatform.BOTLEFT ? e_posPlatform.BOT : pathPlatform[pathID].currentPosPlatform + 1;
+        else
+            pathPlatform[pathID].currentPosPlatform = pathPlatform[pathID].currentPosPlatform == e_posPlatform.BOT ? e_posPlatform.BOTLEFT : pathPlatform[pathID].currentPosPlatform - 1;
+        if (pathPlatform[2].used == true && (pathPlatform[2].currentPosPlatform == pathPlatform[1].currentPosPlatform ||
+            pathPlatform[2].currentPosPlatform == pathPlatform[0].currentPosPlatform))
+        {
+            pathPlatform[2].used = false;
+        }
+        if (pathPlatform[1].used == true && pathPlatform[1].currentPosPlatform == pathPlatform[0].currentPosPlatform)
+        {
+            pathPlatform[1].used = false;
+        }
+    }
+
+    void AddPath()
+    {
+        for (int count = 1; count < 3; count++)
+        {
+            if (pathPlatform[count].used == false)
+            {
+                pathPlatform[count].used = true;
+                pathPlatform[count].currentPosPlatform = pathPlatform[count - 1].lastPosPlatform;
+                pathPlatform[count].lastPosPlatform = pathPlatform[count - 1].currentPosPlatform;
+                GetNewPosPlatform(count);
+                return;
+            }
+        }
     }
 
     public void StartGame()
@@ -379,49 +384,6 @@ public class GameManager : MonoBehaviour
     {
         ScorePoint += point;
         instanceInterfaceManager.UpdateScore();
-    }
-
-    void GetNewPosPlatform(int pathId)
-    {
-        Debug.Log("GetNewPosPlatform");
-        Debug.Log("BEFORE otherPosPlatform[" + pathId + "]: " + (e_posPlatform)otherPosPlatform[pathId]);
-        if (MyRandom.ThrowOfDice(50))
-            otherPosPlatform[pathId] = otherPosPlatform[pathId] == (int)e_posPlatform.BOTLEFT ? (int)e_posPlatform.BOT : otherPosPlatform[pathId] + 1;
-        else
-            otherPosPlatform[pathId] = otherPosPlatform[pathId] == (int)e_posPlatform.BOT ? (int)e_posPlatform.BOTLEFT : otherPosPlatform[pathId] - 1;
-        if (pathId != 0)
-        {
-            if (otherPosPlatform[2] == otherPosPlatform[1] || otherPosPlatform[2] == otherPosPlatform[0])
-                otherPosPlatform[2] = -1;
-            if (otherPosPlatform[1] == otherPosPlatform[0])
-                otherPosPlatform[2] = -1;
-        }
-        Debug.Log("AFTER otherPosPlatform[pathId]: " + (e_posPlatform)otherPosPlatform[pathId]);
-    }
-
-    public bool AddPath()
-    {
-        for (int count = 1; count < 2; count++)
-        {
-            if (otherPosPlatform[count] == -1)
-            {
-                if (MyRandom.ThrowOfDice(50))
-                {
-                    otherPosPlatform[count] = otherPosPlatform[count - 1] + 1;
-                    Debug.Log("Main pos otherPosPlatform[" + (count - 1) + "]: " + (e_posPlatform)otherPosPlatform[count - 1]);
-                    Debug.Log("Maintenant set à: " + (e_posPlatform)(otherPosPlatform[count - 1] + 1));
-                }
-                else
-                {
-                    otherPosPlatform[count] = otherPosPlatform[count - 1] - 1;
-                    Debug.Log("Main pos otherPosPlatform[" + (count - 1) + "]: " + (e_posPlatform)otherPosPlatform[count - 1]);
-                    Debug.Log("Maintenant set à: " + (e_posPlatform)(otherPosPlatform[count - 1] - 1));
-                }
-
-                return true;
-            }
-        }
-        return false;
     }
 
     public bool Pause { get; set; }
