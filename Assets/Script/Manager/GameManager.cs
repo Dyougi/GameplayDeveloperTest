@@ -122,7 +122,7 @@ public class GameManager : MonoBehaviour
                     int scaleRandom = Random.Range(4, 8);
                     if (MyRandom.ThrowOfDice(30))
                         AddPath();
-                    for (int count = 0; count < 2; count++)
+                    for (int count = 0; count < 3; count++)
                     {
                         if (pathPlatform[count].used == true)
                         {
@@ -257,7 +257,7 @@ public class GameManager : MonoBehaviour
             scaleRandom = Random.Range(4, 8);
             if (MyRandom.ThrowOfDice(30))
                 AddPath();
-            for (int count = 0; count < 2; count++)
+            for (int count = 0; count < 3; count++)
             {
                 if (pathPlatform[count].used == true)
                 {
@@ -276,7 +276,7 @@ public class GameManager : MonoBehaviour
 
     bool VerifPlayerDeath()
     {
-        if (playerInstance.transform.position.y < 0)
+        if (playerInstance.transform.position.y < 0.5f)
         {
             Debug.Log("Dead");
             if (PlayerPrefs.GetInt("bestScore") < ScorePoint)
@@ -405,7 +405,7 @@ public class GameManager : MonoBehaviour
         Vector3 saveRotation = platformEnvironment.transform.eulerAngles;
         while (angle < 45.0f)
         {
-            degree = Time.deltaTime * 400;
+            degree = Time.deltaTime * 250;
             if (dir == e_dirRotation.RIGHT)
             {
                 platformEnvironment.transform.Rotate(Vector3.back * degree);
@@ -415,16 +415,19 @@ public class GameManager : MonoBehaviour
                 platformEnvironment.transform.Rotate(Vector3.forward * degree);
 
             }
+            if (angle + degree > 45.0f)
+            {
+                if (dir == e_dirRotation.RIGHT)
+                {
+                    platformEnvironment.transform.eulerAngles = saveRotation + (Vector3.back * 45);
+                }
+                else
+                {
+                    platformEnvironment.transform.eulerAngles = saveRotation + (Vector3.forward * 45);
+                }
+            }
             angle += degree;
             yield return null;
-        }
-        if (dir == e_dirRotation.RIGHT)
-        {
-            platformEnvironment.transform.eulerAngles = saveRotation + (Vector3.back * 45);
-        }
-        else
-        {
-            platformEnvironment.transform.eulerAngles = saveRotation + (Vector3.forward * 45);
         }
     }
 
