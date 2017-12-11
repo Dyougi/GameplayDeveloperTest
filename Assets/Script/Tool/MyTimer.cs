@@ -1,4 +1,6 @@
-﻿using UnityEngine;
+﻿using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
 
 public class MyTimer : MonoBehaviour
 {
@@ -21,16 +23,19 @@ public class MyTimer : MonoBehaviour
 
     public static MyTimer Instance
     {
-        get { return instance; }
+        get
+        {
+            return instance;
+        }
     }
-    
+
     void Start()
     {
         totalTime = 0;
         Pause = false;
     }
-    
-    void FixedUpdate()
+
+    void Update()
     {
         if (!Pause)
         {
@@ -43,7 +48,15 @@ public class MyTimer : MonoBehaviour
         totalTime = 0;
     }
 
-    public float TotalTime
+    public float TotalTimeMilliSecond
+    {
+        get
+        {
+            return totalTime * 1000;
+        }
+    }
+
+    public float TotalTimeSecond
     {
         get
         {
@@ -51,5 +64,21 @@ public class MyTimer : MonoBehaviour
         }
     }
 
-    public bool Pause {get; set;}
+    public float TotalTimeMinute
+    {
+        get
+        {
+            return totalTime / 60;
+        }
+    }
+
+    public float TotalTimHour
+    {
+        get
+        {
+            return totalTime / 3600;
+        }
+    }
+
+    public bool Pause { get; set; }
 }

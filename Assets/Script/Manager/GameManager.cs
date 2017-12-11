@@ -37,13 +37,10 @@ public class GameManager : MonoBehaviour
     private GameObject platformEnvironment;
 
     [SerializeField]
-    private InterfaceManager instanceInterfaceManager;
+    private InterfaceManager interfaceManagerInstance;
 
     [SerializeField]
     private PlatformManager platformManagerInstance;
-
-    [SerializeField]
-    private Camera camera;
 
     [SerializeField]
     private AudioClip startGameSound;
@@ -68,6 +65,7 @@ public class GameManager : MonoBehaviour
     private float distanceBetweenPlatform;
     private float currentMinDistanceBetweenPlatform;
     private float currentMaxDistanceBetweenPlatform;
+    private bool isPaused;
 
     private static GameManager instance;
 
@@ -98,7 +96,7 @@ public class GameManager : MonoBehaviour
     void Start()
     {
         GameStarted = false;
-        Pause = false;
+        isPaused = false;
         PlayerController.OnJump += PlayerJumped;
         PlayerController.OnLand += PlayerLanded;
         isPlayerDead = false;
@@ -117,7 +115,7 @@ public class GameManager : MonoBehaviour
             {
                 if (VerifPlayerDeath())
                     return;
-                if (lastInstanceTime + ratePlatform < MyTimer.Instance.TotalTime)
+                if (lastInstanceTime + ratePlatform < MyTimer.Instance.TotalTimeSecond)
                 {
                     int scaleRandom = Random.Range(4, 8);
                     if (MyRandom.ThrowOfDice(30))
@@ -132,7 +130,7 @@ public class GameManager : MonoBehaviour
                     }
                     distanceBetweenPlatform = Random.Range(currentMinDistanceBetweenPlatform, currentMaxDistanceBetweenPlatform);
                     ratePlatform = (distanceBetweenPlatform + scaleRandom) / speedPlatform;
-                    lastInstanceTime = MyTimer.Instance.TotalTime;
+                    lastInstanceTime = MyTimer.Instance.TotalTimeSecond;
                 }
             }
         }
@@ -151,18 +149,18 @@ public class GameManager : MonoBehaviour
             {
                 if (isPlayerDead)
                 {
-                    if (initTime + 1 < MyTimer.Instance.TotalTime)
+                    if (initTime + 1 < MyTimer.Instance.TotalTimeSecond)
                     {
                         isPlayerDead = false;
                         platformEnvironment.transform.eulerAngles = Vector3.zero;
                         playerInstance.gameObject.GetComponent<Rigidbody>().velocity = Vector3.zero;
-                        instanceInterfaceManager.ShowMenu(true);
+                        interfaceManagerInstance.ShowMenu(true);
                         InitGame();
                     }
                 }
                 else
                 {
-                    if (initTime + 1 < MyTimer.Instance.TotalTime)
+                    if (initTime + 1 < MyTimer.Instance.TotalTimeSecond)
                         StartGame();
                 }
             }
@@ -177,18 +175,18 @@ public class GameManager : MonoBehaviour
             {
                 if (isPlayerDead)
                 {
-                    if (initTime + 1 < MyTimer.Instance.TotalTime)
+                    if (initTime + 1 < MyTimer.Instance.TotalTimeSecond)
                     {
                         isPlayerDead = false;
                         platformEnvironment.transform.eulerAngles = Vector3.zero;
                         playerInstance.gameObject.GetComponent<Rigidbody>().velocity = Vector3.zero;
-                        instanceInterfaceManager.ShowMenu(true);
+                        interfaceManagerInstance.ShowMenu(true);
                         InitGame();
                     }
                 }
                 else
                 {
-                    if (initTime + 1 < MyTimer.Instance.TotalTime)
+                    if (initTime + 1 < MyTimer.Instance.TotalTimeSecond)
                         StartGame();
                 }
             }
@@ -199,18 +197,18 @@ public class GameManager : MonoBehaviour
         {
             if (isPlayerDead)
             {
-                if (initTime + 1 < MyTimer.Instance.TotalTime)
+                if (initTime + 1 < MyTimer.Instance.TotalTimeSecond)
                 {
                     isPlayerDead = false;
                     platformEnvironment.transform.eulerAngles = Vector3.zero;
                     playerInstance.gameObject.GetComponent<Rigidbody>().velocity = Vector3.zero;
-                    instanceInterfaceManager.ShowMenu(true);
+                    interfaceManagerInstance.ShowMenu(true);
                     InitGame();
                 }
             }
             else
             {
-                if (initTime + 1 < MyTimer.Instance.TotalTime)
+                if (initTime + 1 < MyTimer.Instance.TotalTimeSecond)
                     StartGame();
             }
         }
@@ -223,8 +221,8 @@ public class GameManager : MonoBehaviour
         speedPlatform = speedPlatformStart;
         playerInstance.InitPlayer();
         ratePlatform = 0;
-        instanceInterfaceManager.InitInterface();
-        initTime = MyTimer.Instance.TotalTime;
+        interfaceManagerInstance.InitInterface();
+        initTime = MyTimer.Instance.TotalTimeSecond;
         ScorePoint = 0;
         currentFlagPlatform = 0;
         currentStepPlatform = 0;
@@ -282,11 +280,11 @@ public class GameManager : MonoBehaviour
             if (PlayerPrefs.GetInt("bestScore") < ScorePoint)
                 PlayerPrefs.SetInt("bestScore", ScorePoint);
             GameStarted = false;
-            instanceInterfaceManager.ShowIngameUI(false);
-            instanceInterfaceManager.UpdateStats();
-            instanceInterfaceManager.ShowStats(true);
+            interfaceManagerInstance.ShowIngameUI(false);
+            interfaceManagerInstance.UpdateStats();
+            interfaceManagerInstance.ShowStats(true);
             isPlayerDead = true;
-            initTime = MyTimer.Instance.TotalTime;
+            initTime = MyTimer.Instance.TotalTimeSecond;
             audioSource.PlayOneShot(deathSound);
             return true;
         }
@@ -303,7 +301,7 @@ public class GameManager : MonoBehaviour
         platformManagerInstance.CurrentPlatform = platformManagerInstance.SecondPlatform;
         platformManagerInstance.SecondPlatform = platformManagerInstance.InstancesPlatform[platformManagerInstance.InstancesPlatform.IndexOf(platformManagerInstance.SecondPlatform) + 1];
         ScorePoint += 1;
-        instanceInterfaceManager.UpdateScore();
+        interfaceManagerInstance.UpdateScore();
         if (currentStepPlatform < stepPlatform && currentFlagPlatform >= flagPlatform)
         {
             speedPlatform += 1f;
@@ -367,10 +365,10 @@ public class GameManager : MonoBehaviour
     public void StartGame()
     {
         Debug.Log("StartGame");
-        startTime = MyTimer.Instance.TotalTime;
-        lastInstanceTime += MyTimer.Instance.TotalTime;
-        instanceInterfaceManager.ShowMenu(false);
-        instanceInterfaceManager.ShowIngameUI(true);
+        startTime = MyTimer.Instance.TotalTimeSecond;
+        lastInstanceTime += MyTimer.Instance.TotalTimeSecond;
+        interfaceManagerInstance.ShowMenu(false);
+        interfaceManagerInstance.ShowIngameUI(true);
         GameStarted = true;
         audioSource.PlayOneShot(startGameSound);
     }
@@ -383,17 +381,38 @@ public class GameManager : MonoBehaviour
     public void AddScore(int point)
     {
         ScorePoint += point;
-        instanceInterfaceManager.UpdateScore();
+        interfaceManagerInstance.UpdateScore();
     }
 
-    public bool Pause { get; set; }
+    public void DoPause()
+    {
+        if (!Pause)
+            Pause = true;
+        else
+            Pause = false;
+    }
+
+    public bool Pause {
+        get
+        {
+            return isPaused;
+        }
+        set
+        {
+            isPaused = value;
+            interfaceManagerInstance.Pause = value;
+            playerInstance.Pause = value;
+            platformManagerInstance.Pause = value;
+            MyTimer.Instance.Pause = value;
+        }
+    }
     public bool GameStarted { get; set; }
     public int ScorePoint { get; set; }
     public float ScoreTime
     {
         get
         {
-            return MyTimer.Instance.TotalTime - startTime;
+            return MyTimer.Instance.TotalTimeSecond - startTime;
         }
 
     }
@@ -405,42 +424,32 @@ public class GameManager : MonoBehaviour
         Vector3 saveRotation = platformEnvironment.transform.eulerAngles;
         while (angle < 45.0f)
         {
-            degree = Time.deltaTime * 250;
-            if (dir == e_dirRotation.RIGHT)
+            if (!Pause)
             {
-                platformEnvironment.transform.Rotate(Vector3.back * degree);
-            }
-            else
-            {
-                platformEnvironment.transform.Rotate(Vector3.forward * degree);
-
-            }
-            if (angle + degree > 45.0f)
-            {
+                degree = Time.deltaTime * 250;
                 if (dir == e_dirRotation.RIGHT)
                 {
-                    platformEnvironment.transform.eulerAngles = saveRotation + (Vector3.back * 45);
+                    platformEnvironment.transform.Rotate(Vector3.back * degree);
                 }
                 else
                 {
-                    platformEnvironment.transform.eulerAngles = saveRotation + (Vector3.forward * 45);
+                    platformEnvironment.transform.Rotate(Vector3.forward * degree);
+
                 }
+                if (angle + degree > 45.0f)
+                {
+                    if (dir == e_dirRotation.RIGHT)
+                    {
+                        platformEnvironment.transform.eulerAngles = saveRotation + (Vector3.back * 45);
+                    }
+                    else
+                    {
+                        platformEnvironment.transform.eulerAngles = saveRotation + (Vector3.forward * 45);
+                    }
+                }
+                angle += degree;
             }
-            angle += degree;
             yield return null;
         }
-    }
-
-
-    IEnumerator DoLerpColorCamera(Color start, Color end)
-    {
-        float ElapsedTime = 0.0f;
-        while (ElapsedTime <= 1.0f)
-        {
-            camera.backgroundColor = Color.Lerp(start, end, ElapsedTime);
-            ElapsedTime += Time.deltaTime * 2;
-            yield return null;
-        }
-        camera.backgroundColor = end;
     }
 }

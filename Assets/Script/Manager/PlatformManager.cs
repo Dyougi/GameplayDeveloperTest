@@ -30,6 +30,7 @@ public class PlatformManager : MonoBehaviour
     private List<GameObject> instancePlatform;
     private int idPlatform;
     private float[,] arrayColor;
+    private bool isPaused;
 
     public enum e_platformType { START, DEFAULT };
     public enum e_colorPlatform { COLOR1, COLOR2, COLOR3, COLOR4, COLOR5, COLOR6, COLOR7, COLOR8 };
@@ -47,6 +48,11 @@ public class PlatformManager : MonoBehaviour
             {255, 0, 127},
             {128, 128, 128},
         };
+    }
+
+    private void Start()
+    {
+        isPaused = false;
     }
 
     Color GetColorFromArray(int dim)
@@ -76,6 +82,7 @@ public class PlatformManager : MonoBehaviour
         currentInstance.GetComponent<Platform>().Id = idPlatform;
         currentInstance.GetComponent<Platform>().ColorPlatform = CurrentColorPlatform;
         currentInstance.GetComponentInChildren<MeshRenderer>().material = platformMaterial;
+        currentInstance.GetComponent<Platform>().HeightScale = newScale;
         if (instanceBonus)
         {
             if (MyRandom.ThrowOfDice(40))
@@ -90,14 +97,6 @@ public class PlatformManager : MonoBehaviour
         currentInstance.transform.GetChild(0).localScale = new Vector3(currentInstance.transform.GetChild(0).localScale.x, currentInstance.transform.GetChild(0).localScale.y, newScale);
         instancePlatform.Add(currentInstance);
         idPlatform++;
-    }
-
-    public void UpdatePausePlatform(bool pause)
-    {
-        instancePlatform.ForEach(delegate (GameObject obj)
-        {
-            obj.GetComponent<Platform>().Pause = pause;
-        });
     }
 
     public void UpdateSpeedPlatform(float newSpeed)
@@ -115,7 +114,7 @@ public class PlatformManager : MonoBehaviour
         {
             Color start = GetColorFromArray((int)CurrentColorPlatform - 1);
             Color end = GetColorFromArray((int)CurrentColorPlatform);
-            StartCoroutine(DoLerpColorCamera(start, end));
+            StartCoroutine(DoLerpColorPlatform(start, end));
         }
     }
 
@@ -144,14 +143,31 @@ public class PlatformManager : MonoBehaviour
         }
 
     }
+    public bool Pause
+    {
+        get
+        {
+            return isPaused;
+        }
+        set
+        {
+            instancePlatform.ForEach(delegate (GameObject obj)
+            {
+                obj.GetComponent<Platform>().Pause = value;
+            });
+        }
+    }
 
-    IEnumerator DoLerpColorCamera(Color start, Color end)
+    IEnumerator DoLerpColorPlatform(Color start, Color end)
     {
         float ElapsedTime = 0.0f;
-        while (ElapsedTime <= 1.0f)
+        while (ElapsedTime < 1.0f)
         {
-            platformMaterial.color = Color.Lerp(start, end, ElapsedTime);
-            ElapsedTime += Time.deltaTime * 2;
+            if (!Pause)
+            {
+                platformMaterial.color = Color.Lerp(start, end, ElapsedTime);
+                ElapsedTime += Time.deltaTime * 2;
+            }
             yield return null;
         }
         platformMaterial.color = end;

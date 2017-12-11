@@ -143,9 +143,8 @@ MonoBehaviour:
   platformDefault: {fileID: 1984235975193104, guid: 44415d3226ad9b340bb8e73d637fee18,
     type: 2}
   platformEnvironment: {fileID: 0}
-  instanceInterfaceManager: {fileID: 0}
+  interfaceManagerInstance: {fileID: 0}
   platformManagerInstance: {fileID: 0}
-  camera: {fileID: 0}
   startGameSound: {fileID: 8300000, guid: 7b683ead5500f0b4088deaefaf34e652, type: 3}
   deathSound: {fileID: 8300000, guid: 606ea4cdccb4c6e448901af3fdaf70cd, type: 3}
   stepSound: {fileID: 8300000, guid: 75ed263407b63a749a07ee4414ac2074, type: 3}

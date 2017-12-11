@@ -8,8 +8,11 @@ public class Platform : MonoBehaviour {
     private Transform endPosition;
     private Vector3 endTranslatePlatform;
 
+    public float tmpHeightScale;
+
     public float Speed {get; set;}
     public float Id { get; set; }
+    public float HeightScale { get; set; }
     public PlatformManager.e_colorPlatform ColorPlatform { get; set; }
 
     void Start ()
@@ -25,8 +28,8 @@ public class Platform : MonoBehaviour {
             {
                 if (transform.position.z < endTranslatePlatform.z)
                 {
-                    GameManager.Instance.DestroyPlatform(this.gameObject);
-                    Destroy(this.gameObject);
+                    GameManager.Instance.DestroyPlatform(gameObject);
+                    Destroy(gameObject);
                 }
                 transform.Translate(Vector3.back * Time.deltaTime * Speed);
             }
@@ -41,6 +44,7 @@ public class Platform : MonoBehaviour {
         endTranslatePlatform = newEndTranslatePlatform;
         if (doLerp)
             StartCoroutine(TranslatePlatformToStart(offset));
+        tmpHeightScale = HeightScale;
     }
 
     public bool Pause { get; set; }
@@ -48,14 +52,17 @@ public class Platform : MonoBehaviour {
 
     IEnumerator TranslatePlatformToStart(Vector3 offset)
     {
-        float ElapsedTime = 0.0f;
-        while (ElapsedTime <= 1.0f)
+        float elapsedTime = 0.0f;
+        while (elapsedTime < 1.0f)
         {
-            Vector3 lerpVec = Vector3.Lerp(startPosition.position, endPosition.position + offset, ElapsedTime);
-            if (GameManager.Instance.GameStarted)
-                lerpVec.z = transform.position.z;
-            transform.position = lerpVec;
-            ElapsedTime += Time.deltaTime;
+            if (!Pause)
+            {
+                Vector3 lerpVec = Vector3.Lerp(startPosition.position, endPosition.position + offset, elapsedTime);
+                if (GameManager.Instance.GameStarted)
+                    lerpVec.z = transform.position.z;
+                transform.position = lerpVec;
+                elapsedTime += Time.deltaTime;
+            }
             yield return null;
         }
         Vector3 newPos = new Vector3(endPosition.position.x, endPosition.position.y, transform.position.z);

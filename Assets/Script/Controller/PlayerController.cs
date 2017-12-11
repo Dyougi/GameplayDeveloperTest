@@ -19,6 +19,7 @@ public class PlayerController : MonoBehaviour {
     private Vector3 playerDefaultPos;
     private bool isJumping;
     private float speedRotation;
+    private bool isPaused;
 
     public delegate void PlayerAction(e_jump jump);
     public static event PlayerAction OnJump;
@@ -35,7 +36,7 @@ public class PlayerController : MonoBehaviour {
 
     void Start ()
     {
-        Pause = false;
+        isPaused = false;
         IsDead = false;
         speedRotation = 100;
     }
@@ -149,6 +150,21 @@ public class PlayerController : MonoBehaviour {
         transform.position = playerDefaultPos;
     }
 
-    public bool Pause { get; set; }
+    public bool Pause
+    {
+        get
+        {
+            return isPaused;
+        }
+
+        set
+        {
+            isPaused = value;
+            if (value)
+                rb.constraints = RigidbodyConstraints.FreezeAll;
+            else
+                rb.constraints = ~RigidbodyConstraints.FreezePositionY;
+        }
+    }
     public bool IsDead { get; set; }
 }

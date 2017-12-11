@@ -29,17 +29,24 @@ public class InterfaceManager : MonoBehaviour {
     [SerializeField]
     GameObject tuto;
 
+    [SerializeField]
+    GameObject pause;
+
+    [SerializeField]
+    Sprite pauseOn;
+
+    [SerializeField]
+    Sprite pauseOff;
+
+    private bool isPaused;
+
     void Start ()
     {
+        isPaused = false;
         if (!PlayerPrefs.HasKey("bestScore"))
             PlayerPrefs.SetInt("bestScore", 0);
     }
 	
-	void Update ()
-    {
-		
-	}
-
     public void InitInterface()
     {
         Debug.Log("InitInterface");
@@ -60,6 +67,7 @@ public class InterfaceManager : MonoBehaviour {
     public void ShowIngameUI(bool show)
     {
         score.SetActive(show);
+        pause.SetActive(show);
     }
 
     public void ShowStats(bool show)
@@ -80,4 +88,20 @@ public class InterfaceManager : MonoBehaviour {
 
     public PlatformManager.e_colorPlatform CurrentButtonLeftColor { get; set; }
     public PlatformManager.e_colorPlatform CurrentButtonRightColor { get; set; }
+    public bool Pause
+    {
+        get
+        {
+            return isPaused;
+        }
+
+        set
+        {
+            isPaused = value;
+            if (value)
+                pause.GetComponent<Image>().sprite = pauseOn;
+            else
+                pause.GetComponent<Image>().sprite = pauseOff;
+        }
+    }
 }

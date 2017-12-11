@@ -59,3 +59,6 @@ MonoBehaviour:
   bestScore: {fileID: 0}
   score: {fileID: 0}
   tuto: {fileID: 0}
+  pause: {fileID: 0}
+  pauseOn: {fileID: 21300000, guid: 07e2c3afb7065ae429beb80574cdd7a7, type: 3}
+  pauseOff: {fileID: 21300000, guid: 569ff27731a64e84f943597ea663dfd0, type: 3}
