@@ -43,7 +43,7 @@ public class MyTimer : MonoBehaviour
         }
     }
 
-    public void resetTimer()
+    public void ResetTimer()
     {
         totalTime = 0;
     }

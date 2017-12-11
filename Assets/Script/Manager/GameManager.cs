@@ -274,7 +274,7 @@ public class GameManager : MonoBehaviour
 
     bool VerifPlayerDeath()
     {
-        if (playerInstance.transform.position.y < 0.5f)
+        if (playerInstance.transform.position.y < 0.7f)
         {
             Debug.Log("Dead");
             if (PlayerPrefs.GetInt("bestScore") < ScorePoint)

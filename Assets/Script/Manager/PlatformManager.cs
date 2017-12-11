@@ -151,6 +151,7 @@ public class PlatformManager : MonoBehaviour
         }
         set
         {
+            isPaused = value;
             instancePlatform.ForEach(delegate (GameObject obj)
             {
                 obj.GetComponent<Platform>().Pause = value;
@@ -160,13 +161,13 @@ public class PlatformManager : MonoBehaviour
 
     IEnumerator DoLerpColorPlatform(Color start, Color end)
     {
-        float ElapsedTime = 0.0f;
-        while (ElapsedTime < 1.0f)
+        float elapsedTime = 0.0f;
+        while (elapsedTime < 1.0f)
         {
             if (!Pause)
             {
-                platformMaterial.color = Color.Lerp(start, end, ElapsedTime);
-                ElapsedTime += Time.deltaTime * 2;
+                platformMaterial.color = Color.Lerp(start, end, elapsedTime);
+                elapsedTime += Time.deltaTime * 2;
             }
             yield return null;
         }
