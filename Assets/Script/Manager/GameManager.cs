@@ -66,6 +66,9 @@ public class GameManager : MonoBehaviour
     private float currentMinDistanceBetweenPlatform;
     private float currentMaxDistanceBetweenPlatform;
     private bool isPaused;
+    private bool haveToRestartAfterBackground;
+
+    private Coroutine restartAfterBackground;
 
     private static GameManager instance;
 
@@ -84,8 +87,11 @@ public class GameManager : MonoBehaviour
             Destroy(gameObject);
             return;
         }
+
         audioSource = GetComponent<AudioSource>();
         pathPlatform = new PathPlatform[3];
+
+        Log.ClearFile();
     }
 
     public static GameManager Instance
@@ -100,7 +106,7 @@ public class GameManager : MonoBehaviour
         PlayerController.OnJump += PlayerJumped;
         PlayerController.OnLand += PlayerLanded;
         isPlayerDead = false;
-        pathPlatform[0] = new PathPlatform(0, true);
+        pathPlatform[0] = new PathPlatform(0, true, false);
         pathPlatform[1] = new PathPlatform(1);
         pathPlatform[2] = new PathPlatform(2);
         InitGame();
@@ -115,19 +121,37 @@ public class GameManager : MonoBehaviour
             {
                 if (VerifPlayerDeath())
                     return;
+
                 if (lastInstanceTime + ratePlatform < MyTimer.Instance.TotalTimeSecond)
                 {
-                    int scaleRandom = Random.Range(4, 8);
-                    if (MyRandom.ThrowOfDice(30))
-                        AddPath();
+                    float scaleRandom = Random.Range(4, 8);
+                    for (int count = 0; count < 3; count++)
+                    {
+                        if (pathPlatform[count].used && !pathPlatform[count].justCreated)
+                        {
+                            platformManagerInstance.CreatePlatform(pathPlatform[count].nextPosPlatform, speedPlatform, Vector3.zero, scaleRandom);
+                        
+                            pathPlatform[count].lastPosPlatform = pathPlatform[count].currentPosPlatform;
+                            pathPlatform[count].currentPosPlatform = pathPlatform[count].nextPosPlatform;
+
+                            if (MyRandom.ThrowOfDice(30))
+                                AddPath(count);
+                        }
+                    }
+                    
                     for (int count = 0; count < 3; count++)
                     {
                         if (pathPlatform[count].used == true)
                         {
-                            platformManagerInstance.CreatePlatform(pathPlatform[count].currentPosPlatform, speedPlatform, Vector3.zero, scaleRandom);
                             GetNewPosPlatform(count);
+                            if (pathPlatform[count].justCreated)
+                            {
+                                pathPlatform[count].justCreated = false;
+                            }
                         }
                     }
+                    
+                    VerifIfSimilarPath();
                     distanceBetweenPlatform = Random.Range(currentMinDistanceBetweenPlatform, currentMaxDistanceBetweenPlatform);
                     ratePlatform = (distanceBetweenPlatform + scaleRandom) / speedPlatform;
                     lastInstanceTime = MyTimer.Instance.TotalTimeSecond;
@@ -137,6 +161,32 @@ public class GameManager : MonoBehaviour
         else
         {
             ManageInput();
+        }
+    }
+
+    void OnApplicationFocus(bool pauseStatus)
+    {
+        if (pauseStatus) // regain focus
+        {
+            if (GameStarted)
+            {
+                if (haveToRestartAfterBackground)
+                {
+                    interfaceManagerInstance.ShowRestartBackground(true);
+                    restartAfterBackground = StartCoroutine(RestartAfterbackground());
+                }
+            }
+        }
+        else // losing focus
+        {
+            if (haveToRestartAfterBackground)
+                StopCoroutine(restartAfterBackground);
+            if (!Pause && GameStarted)
+            {
+                interfaceManagerInstance.ShowIngameUI(false);
+                Pause = true;
+                haveToRestartAfterBackground = true;
+            }
         }
     }
 
@@ -230,8 +280,11 @@ public class GameManager : MonoBehaviour
         platformManagerInstance.InitPlatform();
         platformManagerInstance.ClearInstancesPlatform();
         pathPlatform[0].currentPosPlatform = e_posPlatform.BOT;
+        pathPlatform[0].lastPosPlatform = e_posPlatform.BOT;
         pathPlatform[1].used = false;
         pathPlatform[2].used = false;
+        pathPlatform[1].justCreated = false;
+        pathPlatform[2].justCreated = false;
         currentMinDistanceBetweenPlatform = minDistanceBetweenPlatform;
         currentMaxDistanceBetweenPlatform = maxDistanceBetweenPlatform;
         InitTerrain();
@@ -253,16 +306,34 @@ public class GameManager : MonoBehaviour
         while (offset <= 0)
         {
             scaleRandom = Random.Range(4, 8);
-            if (MyRandom.ThrowOfDice(30))
-                AddPath();
+            
+            for (int count = 0; count < 3; count++)
+            {
+                if (pathPlatform[count].used && !pathPlatform[count].justCreated)
+                {
+                    platformManagerInstance.CreatePlatform(pathPlatform[count].nextPosPlatform, speedPlatform, posPlatform, scaleRandom);
+
+                    pathPlatform[count].lastPosPlatform = pathPlatform[count].currentPosPlatform;
+                    pathPlatform[count].currentPosPlatform = pathPlatform[count].nextPosPlatform;
+
+                    if (MyRandom.ThrowOfDice(30))
+                        AddPath(count);
+                }
+            }
+            
             for (int count = 0; count < 3; count++)
             {
                 if (pathPlatform[count].used == true)
                 {
-                    platformManagerInstance.CreatePlatform(pathPlatform[count].currentPosPlatform, speedPlatform, posPlatform, scaleRandom);
                     GetNewPosPlatform(count);
+                    if (pathPlatform[count].justCreated)
+                    {
+                        pathPlatform[count].justCreated = false;
+                    }
                 }
             }
+            
+            VerifIfSimilarPath();
             lastInstanceTime = (distanceBetweenPlatform + scaleRandom + offset) / speedPlatform;
             offset += (scaleRandom + distanceBetweenPlatform);
             posPlatform = Vector3.forward * offset;
@@ -274,20 +345,24 @@ public class GameManager : MonoBehaviour
 
     bool VerifPlayerDeath()
     {
-        if (playerInstance.transform.position.y < 0.7f)
+        if (playerInstance.transform.position.y < 0.6f)
         {
             Debug.Log("Dead");
+
             if (PlayerPrefs.GetInt("bestScore") < ScorePoint)
                 PlayerPrefs.SetInt("bestScore", ScorePoint);
+
             GameStarted = false;
             interfaceManagerInstance.ShowIngameUI(false);
-            interfaceManagerInstance.UpdateStats();
+            interfaceManagerInstance.UpdateStats(ScorePoint);
             interfaceManagerInstance.ShowStats(true);
             isPlayerDead = true;
             initTime = MyTimer.Instance.TotalTimeSecond;
             audioSource.PlayOneShot(deathSound);
+            playerInstance.StopVelocity();
             return true;
         }
+
         return false;
     }
 
@@ -300,8 +375,7 @@ public class GameManager : MonoBehaviour
     {
         platformManagerInstance.CurrentPlatform = platformManagerInstance.SecondPlatform;
         platformManagerInstance.SecondPlatform = platformManagerInstance.InstancesPlatform[platformManagerInstance.InstancesPlatform.IndexOf(platformManagerInstance.SecondPlatform) + 1];
-        ScorePoint += 1;
-        interfaceManagerInstance.UpdateScore();
+
         if (currentStepPlatform < stepPlatform && currentFlagPlatform >= flagPlatform)
         {
             speedPlatform += 1f;
@@ -314,6 +388,7 @@ public class GameManager : MonoBehaviour
             currentMinDistanceBetweenPlatform += 0.2f;
             currentMaxDistanceBetweenPlatform += 0.5f;
         }
+
         currentFlagPlatform++;
     }
 
@@ -331,35 +406,64 @@ public class GameManager : MonoBehaviour
 
     void GetNewPosPlatform(int pathID)
     {
-        pathPlatform[pathID].lastPosPlatform = pathPlatform[pathID].currentPosPlatform;
         if (MyRandom.ThrowOfDice(50))
-            pathPlatform[pathID].currentPosPlatform = pathPlatform[pathID].currentPosPlatform == e_posPlatform.BOTLEFT ? e_posPlatform.BOT : pathPlatform[pathID].currentPosPlatform + 1;
+            pathPlatform[pathID].nextPosPlatform = pathPlatform[pathID].currentPosPlatform == e_posPlatform.BOTLEFT ? e_posPlatform.BOT : pathPlatform[pathID].currentPosPlatform + 1;
         else
-            pathPlatform[pathID].currentPosPlatform = pathPlatform[pathID].currentPosPlatform == e_posPlatform.BOT ? e_posPlatform.BOTLEFT : pathPlatform[pathID].currentPosPlatform - 1;
-        if (pathPlatform[2].used == true && (pathPlatform[2].currentPosPlatform == pathPlatform[1].currentPosPlatform ||
-            pathPlatform[2].currentPosPlatform == pathPlatform[0].currentPosPlatform))
+            pathPlatform[pathID].nextPosPlatform = pathPlatform[pathID].currentPosPlatform == e_posPlatform.BOT ? e_posPlatform.BOTLEFT : pathPlatform[pathID].currentPosPlatform - 1;
+    }
+
+    void VerifIfSimilarPath()
+    {
+        for (int countPath = 2; countPath >= 0; countPath--)
         {
-            pathPlatform[2].used = false;
-        }
-        if (pathPlatform[1].used == true && pathPlatform[1].currentPosPlatform == pathPlatform[0].currentPosPlatform)
-        {
-            pathPlatform[1].used = false;
+            for (int countComparePath = 2; countComparePath >= 0; countComparePath--)
+            {
+                if (countPath != countComparePath
+                    && pathPlatform[countPath].used
+                    && pathPlatform[countComparePath].used
+                    && pathPlatform[countPath].nextPosPlatform == pathPlatform[countComparePath].nextPosPlatform)
+                {
+                    pathPlatform[countComparePath].used = false;
+                }
+            }
         }
     }
 
-    void AddPath()
+    void AddPath(int pathId)
     {
         for (int count = 1; count < 3; count++)
         {
             if (pathPlatform[count].used == false)
             {
                 pathPlatform[count].used = true;
-                pathPlatform[count].currentPosPlatform = pathPlatform[count - 1].lastPosPlatform;
-                pathPlatform[count].lastPosPlatform = pathPlatform[count - 1].currentPosPlatform;
-                GetNewPosPlatform(count);
+                pathPlatform[count].justCreated = true;
+                pathPlatform[count].currentPosPlatform = pathPlatform[pathId].currentPosPlatform;
+                pathPlatform[count].lastPosPlatform = pathPlatform[pathId].lastPosPlatform;
                 return;
             }
         }
+    }
+
+    int ActivatePath()
+    {
+        int result = 0;
+        for (int count = 1; count < pathPlatform.Length; count++)
+        {
+            if (pathPlatform[count].justCreated == true)
+                pathPlatform[count].justCreated = false;
+        }
+        return result;
+    }
+
+    int CountNumberPath()
+    {
+        int result = 0;
+        for (int count = 0; count < pathPlatform.Length; count++)
+        {
+            if (pathPlatform[count].used == true)
+                result++;
+        }
+        return result;
     }
 
     public void StartGame()
@@ -381,7 +485,7 @@ public class GameManager : MonoBehaviour
     public void AddScore(int point)
     {
         ScorePoint += point;
-        interfaceManagerInstance.UpdateScore();
+        interfaceManagerInstance.UpdateScore(ScorePoint);
     }
 
     public void DoPause()
@@ -392,7 +496,8 @@ public class GameManager : MonoBehaviour
             Pause = false;
     }
 
-    public bool Pause {
+    public bool Pause
+    {
         get
         {
             return isPaused;
@@ -417,16 +522,53 @@ public class GameManager : MonoBehaviour
 
     }
 
+    public PlatformManager PlatformManagerInstance
+    {
+        get
+        {
+            return platformManagerInstance;
+        }
+    }
+
+    public InterfaceManager InterfaceManagerInstance
+    {
+        get
+        {
+            return interfaceManagerInstance;
+        }
+    }
+
+    IEnumerator RestartAfterbackground()
+    {
+        int count = 3;
+
+        while (count != 0)
+        {
+            interfaceManagerInstance.UpdateRestartBackground(count.ToString());
+            count--;
+            yield return new WaitForSeconds(1);
+        }
+
+        interfaceManagerInstance.UpdateRestartBackground("GO !");
+        yield return new WaitForSeconds(1);
+        interfaceManagerInstance.ShowRestartBackground(false);
+        interfaceManagerInstance.ShowIngameUI(true);
+        Pause = false;
+        haveToRestartAfterBackground = false;
+    }
+
     IEnumerator DoRotatePlatformEnvironment(e_dirRotation dir)
     {
         float angle = 0.0f;
         float degree;
         Vector3 saveRotation = platformEnvironment.transform.eulerAngles;
+
         while (angle < 45.0f)
         {
             if (!Pause)
             {
                 degree = Time.deltaTime * 250;
+
                 if (dir == e_dirRotation.RIGHT)
                 {
                     platformEnvironment.transform.Rotate(Vector3.back * degree);
@@ -436,6 +578,7 @@ public class GameManager : MonoBehaviour
                     platformEnvironment.transform.Rotate(Vector3.forward * degree);
 
                 }
+
                 if (angle + degree > 45.0f)
                 {
                     if (dir == e_dirRotation.RIGHT)
@@ -447,8 +590,10 @@ public class GameManager : MonoBehaviour
                         platformEnvironment.transform.eulerAngles = saveRotation + (Vector3.forward * 45);
                     }
                 }
+
                 angle += degree;
             }
+
             yield return null;
         }
     }

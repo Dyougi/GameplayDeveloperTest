@@ -9,57 +9,45 @@ Prefab:
     m_Modifications: []
     m_RemovedComponents: []
   m_ParentPrefab: {fileID: 0}
-  m_RootGameObject: {fileID: 1959731851262710}
+  m_RootGameObject: {fileID: 1397031651789872}
   m_IsPrefabParent: 1
---- !u!1 &1959731851262710
+--- !u!1 &1397031651789872
 GameObject:
   m_ObjectHideFlags: 0
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 100100000}
   serializedVersion: 5
   m_Component:
-  - component: {fileID: 4981503234235118}
-  - component: {fileID: 114554994658999604}
+  - component: {fileID: 4572966899965252}
+  - component: {fileID: 114694218042255006}
   m_Layer: 0
-  m_Name: InterfaceManager
+  m_Name: BOT
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!4 &4981503234235118
+--- !u!4 &4572966899965252
 Transform:
   m_ObjectHideFlags: 1
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 100100000}
-  m_GameObject: {fileID: 1959731851262710}
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 290.57028, y: 156.88031, z: -54.32073}
+  m_GameObject: {fileID: 1397031651789872}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0.6018921, y: -0.5234375, z: 4.777027}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &114554994658999604
+--- !u!114 &114694218042255006
 MonoBehaviour:
   m_ObjectHideFlags: 1
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 100100000}
-  m_GameObject: {fileID: 1959731851262710}
+  m_GameObject: {fileID: 1397031651789872}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: a355ac6307b23b9489b462c3aa8d7e3e, type: 3}
+  m_Script: {fileID: 11500000, guid: f0cb90efbdcfe96408857099e4ec6406, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  menuTitle: {fileID: 0}
-  menuPlay: {fileID: 0}
-  stats: {fileID: 0}
-  point: {fileID: 0}
-  time: {fileID: 0}
-  bestScore: {fileID: 0}
-  score: {fileID: 0}
-  tuto: {fileID: 0}
-  pause: {fileID: 0}
-  restartBackground: {fileID: 0}
-  pauseOn: {fileID: 21300000, guid: 07e2c3afb7065ae429beb80574cdd7a7, type: 3}
-  pauseOff: {fileID: 21300000, guid: 569ff27731a64e84f943597ea663dfd0, type: 3}

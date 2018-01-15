@@ -8,8 +8,6 @@ public class Platform : MonoBehaviour {
     private Transform endPosition;
     private Vector3 endTranslatePlatform;
 
-    public float tmpHeightScale;
-
     public float Speed {get; set;}
     public float Id { get; set; }
     public float HeightScale { get; set; }
@@ -44,7 +42,6 @@ public class Platform : MonoBehaviour {
         endTranslatePlatform = newEndTranslatePlatform;
         if (doLerp)
             StartCoroutine(TranslatePlatformToStart(offset));
-        tmpHeightScale = HeightScale;
     }
 
     public bool Pause { get; set; }

@@ -10,7 +10,7 @@ public class PlatformManager : MonoBehaviour
     private GameObject platform;
 
     [SerializeField]
-    private GameObject bonus;
+    private GameObject[] bonus;
 
     [SerializeField]
     private Transform[] positionPlatformStart;
@@ -33,20 +33,21 @@ public class PlatformManager : MonoBehaviour
     private bool isPaused;
 
     public enum e_platformType { START, DEFAULT };
+    public enum e_bonus { BONUS1, BONUS2, BONUS3 };
     public enum e_colorPlatform { COLOR1, COLOR2, COLOR3, COLOR4, COLOR5, COLOR6, COLOR7, COLOR8 };
 
     private void Awake()
     {
         instancePlatform = new List<GameObject>();
         arrayColor = new float[8, 3] {
-            {0, 0, 255},
-            {255, 0, 0},
-            {255, 128, 0},
-            {255, 255, 0},
-            {0, 255, 0},
-            {127, 0, 255},
-            {255, 0, 127},
-            {128, 128, 128},
+            {0, 0, 255},        // blue
+            {255, 0, 0},        // red
+            {255, 127, 0},      // orange
+            {255, 255, 0},      // yellow
+            {0, 255, 0},        // green
+            {127, 0, 255},      // purple
+            {255, 0, 127},      // pink
+            {127, 127, 127},    // grey
         };
     }
 
@@ -70,30 +71,40 @@ public class PlatformManager : MonoBehaviour
 
     public void CreatePlatform(GameManager.e_posPlatform posPlatform, float newSpeed, Vector3 newOffset, float newScale, bool doLerp = true, bool instanceBonus = true)
     {
+        Debug.Log("On crée une platform");
         Vector3 platformStartPosition;
+
         if (!doLerp)
             platformStartPosition = positionPlatformStart[(int)posPlatform].position + newOffset;
         else
             platformStartPosition = positionPlatformStart[(int)posPlatform].position;
+
         GameObject currentInstance = Instantiate(platform, platformStartPosition, positionPlatformStart[(int)posPlatform].rotation);
         currentInstance.name = "Platform " + idPlatform;
+        Debug.Log("Le nom de la platform est " + currentInstance.name);
         currentInstance.transform.parent = platformEnvironment.transform;
-        currentInstance.GetComponent<Platform>().PosPlatform = posPlatform;
-        currentInstance.GetComponent<Platform>().Id = idPlatform;
-        currentInstance.GetComponent<Platform>().ColorPlatform = CurrentColorPlatform;
+
+        Platform currentPlatform = currentInstance.GetComponent<Platform>();
+
+        currentPlatform.PosPlatform = posPlatform;
+        currentPlatform.Id = idPlatform;
+        currentPlatform.ColorPlatform = CurrentColorPlatform;
         currentInstance.GetComponentInChildren<MeshRenderer>().material = platformMaterial;
-        currentInstance.GetComponent<Platform>().HeightScale = newScale;
+        currentPlatform.HeightScale = newScale;
+
         if (instanceBonus)
         {
             if (MyRandom.ThrowOfDice(40))
             {
-                Vector3 offset = new Vector3(0, 0.6f, newScale / 2);
-                GameObject currentInstanceBonus = Instantiate(bonus, currentInstance.transform.position, currentInstance.transform.rotation);
+                int rando = Random.Range(0, bonus.Length);
+                GameObject currentInstanceBonus = Instantiate(bonus[rando], currentInstance.transform.position, currentInstance.transform.rotation);
+                Vector3 offset = new Vector3(0, currentInstanceBonus.GetComponent<Bonus>().OffsetPosition, newScale / 2);
                 currentInstanceBonus.transform.parent = currentInstance.transform;
                 currentInstanceBonus.transform.localPosition += offset;
             }
         }
-        currentInstance.GetComponent<Platform>().Init(newSpeed, positionPlatformStart[(int)posPlatform], positionPlatformEnd[(int)posPlatform], positionPlatformDestroy.position, newOffset, doLerp);
+
+        currentPlatform.Init(newSpeed, positionPlatformStart[(int)posPlatform], positionPlatformEnd[(int)posPlatform], positionPlatformDestroy.position, newOffset, doLerp);
         currentInstance.transform.GetChild(0).localScale = new Vector3(currentInstance.transform.GetChild(0).localScale.x, currentInstance.transform.GetChild(0).localScale.y, newScale);
         instancePlatform.Add(currentInstance);
         idPlatform++;
@@ -110,6 +121,7 @@ public class PlatformManager : MonoBehaviour
     public void UpdateColorPlatform()
     {
         CurrentColorPlatform = (int)CurrentColorPlatform + 1 == arrayColor.Length ? 0 : CurrentColorPlatform + 1;
+
         if ((int)CurrentColorPlatform < arrayColor.GetLength(0))
         {
             Color start = GetColorFromArray((int)CurrentColorPlatform - 1);
@@ -124,6 +136,7 @@ public class PlatformManager : MonoBehaviour
         {
             Destroy(obj);
         });
+
         instancePlatform.Clear();
     }
 

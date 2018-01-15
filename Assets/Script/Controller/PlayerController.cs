@@ -15,6 +15,7 @@ public class PlayerController : MonoBehaviour {
     AudioClip bonusSound;
 
     private Rigidbody rb;
+    private BoxCollider coll;
     private AudioSource audioSource;
     private Vector3 playerDefaultPos;
     private bool isJumping;
@@ -30,6 +31,7 @@ public class PlayerController : MonoBehaviour {
     void Awake()
     {
         rb = GetComponent<Rigidbody>();
+        coll = GetComponent<BoxCollider>();
         audioSource = GetComponent<AudioSource>();
         playerDefaultPos = transform.position;
     }
@@ -47,17 +49,17 @@ public class PlayerController : MonoBehaviour {
         {
             if (!Pause)
             {
-                if (isJumping && rb.velocity.y < 0)
+                if (isJumping && rb.velocity.y != 0)
                 {
-                    if (CheckIfNear(platformCheck.position, 0.05f))
-                    {
-                        if (OnLand != null)
-                            OnLand(e_jump.NONE);
-                        isJumping = false;
-                    }
+                    Log.WriteStringDate("Landing");
+                    if (OnLand != null)
+                        OnLand(e_jump.NONE);
+                    isJumping = false;
                 }
+
                 transform.GetChild(0).Rotate(Vector3.right * speedRotation * Time.deltaTime);
-                if (!IsDead)
+
+                if (!IsDead && rb.velocity.y == 0)
                 {
                     ManageInput();
                 }
@@ -75,19 +77,12 @@ public class PlayerController : MonoBehaviour {
         }
     }
 
-    bool CheckIfNear(Vector3 position, float range)
-    {
-        Collider[] colliders = Physics.OverlapSphere(position, range);
-        for (int i = 0; i < colliders.Length; i++)
-            if (colliders[i].gameObject != gameObject)
-                return true;
-        return false;
-    }
-
     void ManageInput()
     {
         Vector2 tapPoint = Vector2.zero;
+
 #if UNITY_IOS
+
         if (Input.touchCount > 0)
         {
             tapPoint = Input.GetTouch(0).position;
@@ -100,8 +95,10 @@ public class PlayerController : MonoBehaviour {
                     DoJump(e_jump.RIGHT);
             }
         }
+
 #endif
 #if UNITY_ANDROID
+
         if (Input.touchCount > 0)
         {
             tapPoint = Input.GetTouch(0).position;
@@ -114,8 +111,10 @@ public class PlayerController : MonoBehaviour {
                     DoJump(e_jump.RIGHT);
             }
         }
+
 #endif
 #if UNITY_EDITOR
+
         if (Input.GetButtonDown("JumpLeft"))
         {
             DoJump(e_jump.LEFT);
@@ -124,14 +123,17 @@ public class PlayerController : MonoBehaviour {
         {
             DoJump(e_jump.RIGHT);
         }
+
 #endif
     }
 
     void DoJump(e_jump jump)
     {
+        Log.WriteStringDate("Try to jump");
         if (!isJumping)
         {
             audioSource.PlayOneShot(jumpSound);
+            Log.WriteStringDate("Jump !");
             if (OnJump != null)
             {
                 OnJump(jump);
@@ -148,6 +150,14 @@ public class PlayerController : MonoBehaviour {
         IsDead = false;
         isJumping = false;
         transform.position = playerDefaultPos;
+        coll.enabled = true;
+    }
+
+    public void StopVelocity()
+    {
+        rb.velocity = Vector3.zero;
+        rb.angularVelocity = Vector3.zero;
+        coll.enabled = false;
     }
 
     public bool Pause
@@ -160,11 +170,13 @@ public class PlayerController : MonoBehaviour {
         set
         {
             isPaused = value;
+
             if (value)
                 rb.constraints = RigidbodyConstraints.FreezeAll;
             else
                 rb.constraints = ~RigidbodyConstraints.FreezePositionY;
         }
     }
+
     public bool IsDead { get; set; }
 }

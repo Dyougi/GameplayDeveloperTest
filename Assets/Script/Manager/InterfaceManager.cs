@@ -33,6 +33,9 @@ public class InterfaceManager : MonoBehaviour {
     GameObject pause;
 
     [SerializeField]
+    GameObject restartBackground;
+
+    [SerializeField]
     Sprite pauseOn;
 
     [SerializeField]
@@ -43,6 +46,7 @@ public class InterfaceManager : MonoBehaviour {
     void Start ()
     {
         isPaused = false;
+
         if (!PlayerPrefs.HasKey("bestScore"))
             PlayerPrefs.SetInt("bestScore", 0);
     }
@@ -54,6 +58,7 @@ public class InterfaceManager : MonoBehaviour {
         score.GetComponentInChildren<Text>().text = "0";
         ShowIngameUI(false);
         ShowStats(false);
+        ShowRestartBackground(false);
     }
 
     public void ShowMenu(bool show)
@@ -75,19 +80,31 @@ public class InterfaceManager : MonoBehaviour {
         stats.SetActive(show);
     }
 
-    public void UpdateStats()
+    public void ShowRestartBackground(bool show)
+    {
+        restartBackground.SetActive(show);
+    }
+
+    public void UpdateRestartBackground(string str)
+    {
+        restartBackground.GetComponent<Text>().text = str;
+    }
+
+    public void UpdateStats(int newScore)
     {
         point.GetComponent<Text>().text = "SCORE: " + GameManager.Instance.ScorePoint;
         time.GetComponent<Text>().text = "BEST SCORE: " + PlayerPrefs.GetInt("bestScore").ToString();
     }
 
-    public void UpdateScore()
+    public void UpdateScore(int newScore)
     {
-        score.GetComponent<Text>().text = GameManager.Instance.ScorePoint.ToString();
+        score.GetComponent<Text>().text = newScore.ToString();
     }
 
     public PlatformManager.e_colorPlatform CurrentButtonLeftColor { get; set; }
+
     public PlatformManager.e_colorPlatform CurrentButtonRightColor { get; set; }
+
     public bool Pause
     {
         get
@@ -98,6 +115,7 @@ public class InterfaceManager : MonoBehaviour {
         set
         {
             isPaused = value;
+
             if (value)
                 pause.GetComponent<Image>().sprite = pauseOn;
             else
