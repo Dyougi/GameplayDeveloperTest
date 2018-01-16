@@ -8,11 +8,6 @@ public class Platform : MonoBehaviour {
     private Transform endPosition;
     private Vector3 endTranslatePlatform;
 
-    public float Speed {get; set;}
-    public float Id { get; set; }
-    public float HeightScale { get; set; }
-    public PlatformManager.e_colorPlatform ColorPlatform { get; set; }
-
     void Start ()
     {
         Pause = false;
@@ -45,7 +40,20 @@ public class Platform : MonoBehaviour {
     }
 
     public bool Pause { get; set; }
+
+    public float Speed { get; set; }
+
+    public float Id { get; set; }
+
+    public float HeightScale { get; set; }
+
+    public PlatformManager.e_colorPlatform ColorPlatform { get; set; }
+
     public GameManager.e_posPlatform PosPlatform { get; set; }
+
+    public GameManager.e_posPlatform NextPosPlatform { get; set; }
+
+    public GameManager.e_posPlatform LastPosPlatform { get; set; }
 
     IEnumerator TranslatePlatformToStart(Vector3 offset)
     {

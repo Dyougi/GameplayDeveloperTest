@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Events;
 using UnityEngine.EventSystems;
 
 public class GameManager : MonoBehaviour
@@ -74,6 +75,9 @@ public class GameManager : MonoBehaviour
 
     private PathPlatform[] pathPlatform;
 
+    public delegate void PathAction(PathPlatform path);
+    public static event PathAction OnPath;
+
     public enum e_dirRotation { LEFT, RIGHT };
     public enum e_posPlatform { BOT, BOTRIGHT, RIGHT, TOPRIGHT, TOP, TOPLEFT, LEFT, BOTLEFT };
 
@@ -129,13 +133,17 @@ public class GameManager : MonoBehaviour
                     {
                         if (pathPlatform[count].used && !pathPlatform[count].justCreated)
                         {
-                            platformManagerInstance.CreatePlatform(pathPlatform[count].nextPosPlatform, speedPlatform, Vector3.zero, scaleRandom);
+                            GameObject obj = platformManagerInstance.CreatePlatform(pathPlatform[count].nextPosPlatform, speedPlatform, Vector3.zero, scaleRandom);
                         
                             pathPlatform[count].lastPosPlatform = pathPlatform[count].currentPosPlatform;
                             pathPlatform[count].currentPosPlatform = pathPlatform[count].nextPosPlatform;
 
                             if (MyRandom.ThrowOfDice(30))
+                            {
                                 AddPath(count);
+                                if (OnPath != null)
+                                    OnPath(pathPlatform[count]);
+                            }
                         }
                     }
                     
@@ -288,6 +296,7 @@ public class GameManager : MonoBehaviour
         currentMinDistanceBetweenPlatform = minDistanceBetweenPlatform;
         currentMaxDistanceBetweenPlatform = maxDistanceBetweenPlatform;
         InitTerrain();
+        platformManagerInstance.CurrentPlatformPlayer = platformManagerInstance.InstancesPlatform[0];
     }
 
     void InitTerrain()

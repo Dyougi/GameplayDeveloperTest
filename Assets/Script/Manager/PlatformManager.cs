@@ -28,6 +28,8 @@ public class PlatformManager : MonoBehaviour
     private Material platformMaterial;
 
     private List<GameObject> instancePlatform;
+    private GameObject currentPlatformPlayer;
+
     private int idPlatform;
     private float[,] arrayColor;
     private bool isPaused;
@@ -69,9 +71,8 @@ public class PlatformManager : MonoBehaviour
         idPlatform = 0;
     }
 
-    public void CreatePlatform(GameManager.e_posPlatform posPlatform, float newSpeed, Vector3 newOffset, float newScale, bool doLerp = true, bool instanceBonus = true)
+    public GameObject CreatePlatform(GameManager.e_posPlatform posPlatform, float newSpeed, Vector3 newOffset, float newScale, bool doLerp = true, bool instanceBonus = true)
     {
-        Debug.Log("On crée une platform");
         Vector3 platformStartPosition;
 
         if (!doLerp)
@@ -81,7 +82,6 @@ public class PlatformManager : MonoBehaviour
 
         GameObject currentInstance = Instantiate(platform, platformStartPosition, positionPlatformStart[(int)posPlatform].rotation);
         currentInstance.name = "Platform " + idPlatform;
-        Debug.Log("Le nom de la platform est " + currentInstance.name);
         currentInstance.transform.parent = platformEnvironment.transform;
 
         Platform currentPlatform = currentInstance.GetComponent<Platform>();
@@ -108,6 +108,7 @@ public class PlatformManager : MonoBehaviour
         currentInstance.transform.GetChild(0).localScale = new Vector3(currentInstance.transform.GetChild(0).localScale.x, currentInstance.transform.GetChild(0).localScale.y, newScale);
         instancePlatform.Add(currentInstance);
         idPlatform++;
+        return currentInstance;
     }
 
     public void UpdateSpeedPlatform(float newSpeed)
@@ -122,12 +123,10 @@ public class PlatformManager : MonoBehaviour
     {
         CurrentColorPlatform = (int)CurrentColorPlatform + 1 == arrayColor.Length ? 0 : CurrentColorPlatform + 1;
 
-        if ((int)CurrentColorPlatform < arrayColor.GetLength(0))
-        {
-            Color start = GetColorFromArray((int)CurrentColorPlatform - 1);
-            Color end = GetColorFromArray((int)CurrentColorPlatform);
-            StartCoroutine(DoLerpColorPlatform(start, end));
-        }
+        
+        Color start = GetColorFromArray((int)CurrentColorPlatform - 1);
+        Color end = GetColorFromArray((int)CurrentColorPlatform);
+        StartCoroutine(DoLerpColorPlatform(start, end));
     }
 
     public void ClearInstancesPlatform()
@@ -146,8 +145,11 @@ public class PlatformManager : MonoBehaviour
     }
 
     public e_colorPlatform CurrentColorPlatform { get; set; }
+
     public GameObject CurrentPlatform { get; set; }
+
     public GameObject SecondPlatform { get; set; }
+
     public List<GameObject> InstancesPlatform
     {
         get
@@ -156,6 +158,20 @@ public class PlatformManager : MonoBehaviour
         }
 
     }
+
+    public GameObject CurrentPlatformPlayer
+    {
+        get
+        {
+            return currentPlatformPlayer;
+        }
+
+        set
+        {
+            currentPlatformPlayer = value;
+        }
+    }
+
     public bool Pause
     {
         get

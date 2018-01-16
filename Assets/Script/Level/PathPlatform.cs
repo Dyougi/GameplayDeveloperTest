@@ -11,6 +11,16 @@ public class PathPlatform {
         justCreated = newJusteCreated;
     }
 
+    public PathPlatform(PathPlatform other)
+    {
+        pathID = other.pathID;
+        used = other.used;
+        justCreated = other.justCreated;
+        nextPosPlatform = other.nextPosPlatform;
+        currentPosPlatform = other.currentPosPlatform;
+        lastPosPlatform = other.lastPosPlatform;
+    }
+
     public int pathID;
     public bool used;
     public bool justCreated;
