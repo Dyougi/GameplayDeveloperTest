@@ -11,11 +11,7 @@ public class BotTest : MonoBehaviour
     private bool isInit;
 
     void Start ()
-    {
-        InputSimulator.SimulateKeyPress(VirtualKeyCode.VK_Z);
-        InputSimulator.SimulateKeyPress(VirtualKeyCode.VK_E);
-        InputSimulator.SimulateKeyPress(VirtualKeyCode.VK_A);
-        
+    {   
         isInit = false;
         GameManager.OnPath += NewPathIt;
     }
@@ -29,6 +25,7 @@ public class BotTest : MonoBehaviour
                 currentFlagTransform = GameManager.Instance.PlatformManagerInstance.InstancesPlatform[0].transform;
                 isInit = true;
             }
+
             if (transform.position.z > currentFlagTransform.Find("FlagJumpBotTest").position.z)
             {
                 int index = GameManager.Instance.PlatformManagerInstance.InstancesPlatform.IndexOf(currentFlagTransform.gameObject) + 1;
@@ -38,11 +35,11 @@ public class BotTest : MonoBehaviour
 
                 if (WhereToJump(currentPath) == GameManager.e_dirRotation.LEFT)
                 {
-                    InputSimulator.SimulateKeyPress(VirtualKeyCode.VK_Z);
+                    BotJumpLeft();
                 }
                 else
                 {
-                    InputSimulator.SimulateKeyPress(VirtualKeyCode.VK_E);
+                    BotJumpRight();
                 }
             }
         }
@@ -68,8 +65,19 @@ public class BotTest : MonoBehaviour
             else
                 return GameManager.e_dirRotation.RIGHT;
         }
-        if (path.currentPosPlatform > path.nextPosPlatform)
+
+        if (path.currentPosPlatform < path.nextPosPlatform)
             return GameManager.e_dirRotation.RIGHT;
         return GameManager.e_dirRotation.LEFT;
+    }
+
+    void BotJumpRight()
+    {
+        InputSimulator.SimulateKeyPress(VirtualKeyCode.VK_E);
+    }
+
+    void BotJumpLeft()
+    {
+        InputSimulator.SimulateKeyPress(VirtualKeyCode.VK_Z);
     }
 }

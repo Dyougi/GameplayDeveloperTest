@@ -35,6 +35,7 @@ public class Platform : MonoBehaviour {
         startPosition = newStartPosition;
         endPosition = newEndPosition;
         endTranslatePlatform = newEndTranslatePlatform;
+
         if (doLerp)
             StartCoroutine(TranslatePlatformToStart(offset));
     }
@@ -58,6 +59,7 @@ public class Platform : MonoBehaviour {
     IEnumerator TranslatePlatformToStart(Vector3 offset)
     {
         float elapsedTime = 0.0f;
+
         while (elapsedTime < 1.0f)
         {
             if (!Pause)
@@ -68,8 +70,10 @@ public class Platform : MonoBehaviour {
                 transform.position = lerpVec;
                 elapsedTime += Time.deltaTime;
             }
+
             yield return null;
         }
+
         Vector3 newPos = new Vector3(endPosition.position.x, endPosition.position.y, transform.position.z);
         transform.position = newPos;
     }

@@ -4,7 +4,6 @@ using UnityEngine;
 
 public class MyTimer : MonoBehaviour
 {
-
     private static MyTimer instance;
 
     float totalTime;

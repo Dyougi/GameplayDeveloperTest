@@ -54,11 +54,10 @@ public class GameManager : MonoBehaviour
 
     private float ratePlatform;
     private AudioSource audioSource;
-
     private float lastInstanceTime;
     private float startTime;
     private float initTime;
-    private bool isPlayerDead;
+
     private float speedPlatform;
     private int currentFlagPlatform;
     private int flagPlatform;
@@ -66,8 +65,10 @@ public class GameManager : MonoBehaviour
     private float distanceBetweenPlatform;
     private float currentMinDistanceBetweenPlatform;
     private float currentMaxDistanceBetweenPlatform;
-    private bool isPaused;
     private bool haveToRestartAfterBackground;
+
+    private bool isPlayerDead;
+    private bool isPaused;
 
     private Coroutine restartAfterBackground;
 
@@ -107,9 +108,11 @@ public class GameManager : MonoBehaviour
     {
         GameStarted = false;
         isPaused = false;
+        isPlayerDead = false;
+
         PlayerController.OnJump += PlayerJumped;
         PlayerController.OnLand += PlayerLanded;
-        isPlayerDead = false;
+
         pathPlatform[0] = new PathPlatform(0, true, false);
         pathPlatform[1] = new PathPlatform(1);
         pathPlatform[2] = new PathPlatform(2);
@@ -347,8 +350,6 @@ public class GameManager : MonoBehaviour
             offset += (scaleRandom + distanceBetweenPlatform);
             posPlatform = Vector3.forward * offset;
         }
-        platformManagerInstance.CurrentPlatform = platformManagerInstance.InstancesPlatform[0];
-        platformManagerInstance.SecondPlatform = platformManagerInstance.InstancesPlatform[1];
     }
 
 

@@ -99,6 +99,7 @@ public class PlatformManager : MonoBehaviour
                 int rando = Random.Range(0, bonus.Length);
                 GameObject currentInstanceBonus = Instantiate(bonus[rando], currentInstance.transform.position, currentInstance.transform.rotation);
                 Vector3 offset = new Vector3(0, currentInstanceBonus.GetComponent<Bonus>().OffsetPosition, newScale / 2);
+
                 currentInstanceBonus.transform.parent = currentInstance.transform;
                 currentInstanceBonus.transform.localPosition += offset;
             }
@@ -122,8 +123,7 @@ public class PlatformManager : MonoBehaviour
     public void UpdateColorPlatform()
     {
         CurrentColorPlatform = (int)CurrentColorPlatform + 1 == arrayColor.Length ? 0 : CurrentColorPlatform + 1;
-
-        
+     
         Color start = GetColorFromArray((int)CurrentColorPlatform - 1);
         Color end = GetColorFromArray((int)CurrentColorPlatform);
         StartCoroutine(DoLerpColorPlatform(start, end));
@@ -146,17 +146,12 @@ public class PlatformManager : MonoBehaviour
 
     public e_colorPlatform CurrentColorPlatform { get; set; }
 
-    public GameObject CurrentPlatform { get; set; }
-
-    public GameObject SecondPlatform { get; set; }
-
     public List<GameObject> InstancesPlatform
     {
         get
         {
             return instancePlatform;
         }
-
     }
 
     public GameObject CurrentPlatformPlayer
@@ -178,6 +173,7 @@ public class PlatformManager : MonoBehaviour
         {
             return isPaused;
         }
+
         set
         {
             isPaused = value;
