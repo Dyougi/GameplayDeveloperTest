@@ -76,7 +76,10 @@ public class GameManager : MonoBehaviour
 
     private PathPlatform[] pathPlatform;
 
-    public delegate void PathAction(PathPlatform path);
+    public delegate void GameAction();
+    public static event GameAction OnDeath;
+
+    public delegate void PathAction(GameObject obj, e_posPlatform pos);
     public static event PathAction OnPath;
 
     public enum e_dirRotation { LEFT, RIGHT };
@@ -137,15 +140,17 @@ public class GameManager : MonoBehaviour
                         if (pathPlatform[count].used && !pathPlatform[count].justCreated)
                         {
                             GameObject obj = platformManagerInstance.CreatePlatform(pathPlatform[count].nextPosPlatform, speedPlatform, Vector3.zero, scaleRandom);
-                        
+
+                            if (count == 0)
+                                if (OnPath != null)
+                                    OnPath(obj, pathPlatform[count].nextPosPlatform);
+
                             pathPlatform[count].lastPosPlatform = pathPlatform[count].currentPosPlatform;
                             pathPlatform[count].currentPosPlatform = pathPlatform[count].nextPosPlatform;
 
                             if (MyRandom.ThrowOfDice(30))
                             {
                                 AddPath(count);
-                                if (OnPath != null)
-                                    OnPath(pathPlatform[count]);
                             }
                         }
                     }
@@ -175,7 +180,7 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    void OnApplicationFocus(bool pauseStatus)
+    /*void OnApplicationFocus(bool pauseStatus)
     {
         if (pauseStatus) // regain focus
         {
@@ -199,7 +204,7 @@ public class GameManager : MonoBehaviour
                 haveToRestartAfterBackground = true;
             }
         }
-    }
+    }*/
 
     void ManageInput()
     {
@@ -258,7 +263,7 @@ public class GameManager : MonoBehaviour
         {
             if (isPlayerDead)
             {
-                if (initTime + 1 < MyTimer.Instance.TotalTimeSecond)
+                if (initTime + 1.5f < MyTimer.Instance.TotalTimeSecond)
                 {
                     isPlayerDead = false;
                     platformEnvironment.transform.eulerAngles = Vector3.zero;
@@ -269,7 +274,7 @@ public class GameManager : MonoBehaviour
             }
             else
             {
-                if (initTime + 1 < MyTimer.Instance.TotalTimeSecond)
+                if (initTime + 1.5f < MyTimer.Instance.TotalTimeSecond)
                     StartGame();
             }
         }
@@ -311,6 +316,7 @@ public class GameManager : MonoBehaviour
         posPlatform += Vector3.up * 70;
         platformManagerInstance.CreatePlatform(pathPlatform[0].currentPosPlatform, speedPlatform, posPlatform, 6, false, false);
         GetNewPosPlatform(0);
+
         distanceBetweenPlatform = Random.Range(currentMinDistanceBetweenPlatform, currentMaxDistanceBetweenPlatform);
         offset += (6 + distanceBetweenPlatform);
         posPlatform = Vector3.forward * offset;
@@ -323,7 +329,11 @@ public class GameManager : MonoBehaviour
             {
                 if (pathPlatform[count].used && !pathPlatform[count].justCreated)
                 {
-                    platformManagerInstance.CreatePlatform(pathPlatform[count].nextPosPlatform, speedPlatform, posPlatform, scaleRandom);
+                    GameObject obj = platformManagerInstance.CreatePlatform(pathPlatform[count].nextPosPlatform, speedPlatform, posPlatform, scaleRandom);
+
+                    if (count == 0)
+                        if (OnPath != null)
+                            OnPath(obj, pathPlatform[count].nextPosPlatform);
 
                     pathPlatform[count].lastPosPlatform = pathPlatform[count].currentPosPlatform;
                     pathPlatform[count].currentPosPlatform = pathPlatform[count].nextPosPlatform;
@@ -357,6 +367,8 @@ public class GameManager : MonoBehaviour
     {
         if (playerInstance.transform.position.y < 0.6f)
         {
+            if (OnDeath != null)
+                OnDeath();
             Debug.Log("Dead");
 
             if (PlayerPrefs.GetInt("bestScore") < ScorePoint)
@@ -383,12 +395,9 @@ public class GameManager : MonoBehaviour
 
     void PlayerLanded(PlayerController.e_jump jump)
     {
-        platformManagerInstance.CurrentPlatform = platformManagerInstance.SecondPlatform;
-        platformManagerInstance.SecondPlatform = platformManagerInstance.InstancesPlatform[platformManagerInstance.InstancesPlatform.IndexOf(platformManagerInstance.SecondPlatform) + 1];
-
         if (currentStepPlatform < stepPlatform && currentFlagPlatform >= flagPlatform)
         {
-            speedPlatform += 1f;
+            speedPlatform += 0.5f;
             platformManagerInstance.UpdateSpeedPlatform(speedPlatform);
             platformManagerInstance.UpdateColorPlatform();
             currentStepPlatform++;
@@ -433,7 +442,8 @@ public class GameManager : MonoBehaviour
                     && pathPlatform[countComparePath].used
                     && pathPlatform[countPath].nextPosPlatform == pathPlatform[countComparePath].nextPosPlatform)
                 {
-                    pathPlatform[countComparePath].used = false;
+                    Debug.Log("PATH " + countPath + " EST MIS A FALSE");
+                    pathPlatform[countPath].used = false;
                 }
             }
         }
