@@ -241,7 +241,7 @@ public class GameManager : MonoBehaviour
     {
         if (isPlayerDead)
         {
-            if (initTime + 1.5f < MyTimer.Instance.TotalTimeSecond)
+            if (initTime + 1f < MyTimer.Instance.TotalTimeSecond)
             {
                 isPlayerDead = false;
                 platformEnvironment.transform.eulerAngles = Vector3.zero;
@@ -252,7 +252,7 @@ public class GameManager : MonoBehaviour
         }
         else
         {
-            if (initTime + 1.5f < MyTimer.Instance.TotalTimeSecond)
+            if (initTime + 1f < MyTimer.Instance.TotalTimeSecond)
                 StartGame();
         }
     }
@@ -535,7 +535,7 @@ public class GameManager : MonoBehaviour
         }
 
         interfaceManagerInstance.UpdateRestartBackground("GO !");
-        yield return new WaitForSeconds(0.5f);
+        yield return new WaitForSeconds(0.2f);
         interfaceManagerInstance.ShowRestartBackground(false);
         interfaceManagerInstance.ShowIngameUI(true);
         Pause = false;
@@ -550,7 +550,7 @@ public class GameManager : MonoBehaviour
         {
             if (!Pause)
             {
-                currentSpeedPlatform = Mathf.Lerp(start, end, elapsedTime);
+                UpdatecurrentSpeedPlatform(Mathf.Lerp(start, end, elapsedTime));
                 elapsedTime += Time.deltaTime * 2;
             }
 

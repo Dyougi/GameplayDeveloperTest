@@ -68,7 +68,7 @@ public class Platform : MonoBehaviour {
                 if (GameManager.Instance.GameStarted)
                     lerpVec.z = transform.position.z;
                 transform.position = lerpVec;
-                elapsedTime += Time.deltaTime * 0.5f;
+                elapsedTime += Time.deltaTime * 1.5f;
             }
 
             yield return null;

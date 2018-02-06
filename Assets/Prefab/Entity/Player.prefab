@@ -42,7 +42,7 @@ GameObject:
   - component: {fileID: 65842901173146174}
   m_Layer: 0
   m_Name: Player
-  m_TagString: Untagged
+  m_TagString: Player
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -263,3 +263,5 @@ MonoBehaviour:
   platformCheck: {fileID: 4242771089984358}
   jumpSound: {fileID: 8300000, guid: d6cf7bff21f78144ab8e5b0f3d77854d, type: 3}
   bonusSound: {fileID: 8300000, guid: 597b224b426ae424b8b997bf5e189b3a, type: 3}
+  pointNotifGO: {fileID: 1673987533532990, guid: 9ccf8395e2647aa44a7ea99801a3658c,
+    type: 2}

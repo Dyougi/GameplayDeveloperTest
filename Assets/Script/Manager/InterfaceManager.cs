@@ -9,9 +9,6 @@ public class InterfaceManager : MonoBehaviour {
     GameObject menuTitle;
 
     [SerializeField]
-    GameObject menuPlay;
-
-    [SerializeField]
     GameObject stats;
 
     [SerializeField]
@@ -64,7 +61,6 @@ public class InterfaceManager : MonoBehaviour {
     public void ShowMenu(bool show)
     {
         menuTitle.SetActive(show);
-        menuPlay.SetActive(show);
         bestScore.SetActive(show);
         tuto.SetActive(show);
     }

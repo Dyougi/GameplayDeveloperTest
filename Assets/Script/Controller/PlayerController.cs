@@ -15,6 +15,9 @@ public class PlayerController : MonoBehaviour {
     [SerializeField]
     AudioClip bonusSound;
 
+    [SerializeField]
+    GameObject pointNotifGO;
+
     private Rigidbody rb;
     private BoxCollider coll;
     private AudioSource audioSource;
@@ -72,9 +75,12 @@ public class PlayerController : MonoBehaviour {
     {
         if (other.tag == "Bonus")
         {
+            int point = other.gameObject.transform.parent.GetComponent<Bonus>().PointGived;
+
             audioSource.PlayOneShot(bonusSound, 0.4f);
             Destroy(other.gameObject);
-            GameManager.Instance.AddScore(2);
+            StartCoroutine(PointAddedNotif(point));
+            GameManager.Instance.AddScore(point);
         }
     }
 
@@ -183,11 +189,14 @@ public class PlayerController : MonoBehaviour {
 
     IEnumerator PointAddedNotif(int nbPoint)
     {
-        GameObject pointNotif = new GameObject();
-        Vector3 start = transform.position + (Vector3.up * 5);
-        Vector3 end = transform.position + (Vector3.up * 15);
+        Vector3 start = transform.position + (Vector3.up * 0.5f); ;
+        Vector3 end = transform.position + (Vector3.up * 3);
+        GameObject pointNotif = Instantiate(pointNotifGO, start, Quaternion.identity);
 
-        Text textNotif = pointNotif.AddComponent<Text>();
+        // To face cam
+        pointNotif.transform.Rotate(Vector3.right * 30);
+
+        Text textNotif = pointNotif.GetComponentInChildren<Text>();
         textNotif.text = "+" + nbPoint.ToString();
 
         float elapsedTime = 0.0f;
@@ -197,7 +206,7 @@ public class PlayerController : MonoBehaviour {
             if (!Pause)
             {
                 pointNotif.transform.position = Vector3.Lerp(start, end, elapsedTime);
-                elapsedTime += Time.deltaTime;
+                elapsedTime += Time.deltaTime * 1.2f;
             }
 
             yield return null;
