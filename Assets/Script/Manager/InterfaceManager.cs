@@ -101,10 +101,6 @@ public class InterfaceManager : MonoBehaviour {
         score.GetComponent<Text>().text = newScore.ToString();
     }
 
-    public PlatformManager.e_colorPlatform CurrentButtonLeftColor { get; set; }
-
-    public PlatformManager.e_colorPlatform CurrentButtonRightColor { get; set; }
-
     public bool Pause
     {
         get

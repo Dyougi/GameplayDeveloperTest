@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.EventSystems;
+using UnityEngine.UI;
 
 public class PlayerController : MonoBehaviour {
 
@@ -179,4 +180,29 @@ public class PlayerController : MonoBehaviour {
     }
 
     public bool IsDead { get; set; }
+
+    IEnumerator PointAddedNotif(int nbPoint)
+    {
+        GameObject pointNotif = new GameObject();
+        Vector3 start = transform.position + (Vector3.up * 5);
+        Vector3 end = transform.position + (Vector3.up * 15);
+
+        Text textNotif = pointNotif.AddComponent<Text>();
+        textNotif.text = "+" + nbPoint.ToString();
+
+        float elapsedTime = 0.0f;
+
+        while (elapsedTime < 1.0f)
+        {
+            if (!Pause)
+            {
+                pointNotif.transform.position = Vector3.Lerp(start, end, elapsedTime);
+                elapsedTime += Time.deltaTime;
+            }
+
+            yield return null;
+        }
+
+        Destroy(pointNotif);
+    }
 }

@@ -59,6 +59,7 @@ public class GameManager : MonoBehaviour
     private float initTime;
 
     private float speedPlatform;
+    private float currentSpeedPlatform;
     private int currentFlagPlatform;
     private int flagPlatform;
     private int currentStepPlatform;
@@ -139,7 +140,7 @@ public class GameManager : MonoBehaviour
                     {
                         if (pathPlatform[count].used && !pathPlatform[count].justCreated)
                         {
-                            GameObject obj = platformManagerInstance.CreatePlatform(pathPlatform[count].nextPosPlatform, speedPlatform, Vector3.zero, scaleRandom);
+                            GameObject obj = platformManagerInstance.CreatePlatform(pathPlatform[count].nextPosPlatform, currentSpeedPlatform, Vector3.zero, scaleRandom);
 
                             if (count == 0)
                                 if (OnPath != null)
@@ -169,7 +170,7 @@ public class GameManager : MonoBehaviour
                     
                     VerifIfSimilarPath();
                     distanceBetweenPlatform = Random.Range(currentMinDistanceBetweenPlatform, currentMaxDistanceBetweenPlatform);
-                    ratePlatform = (distanceBetweenPlatform + scaleRandom) / speedPlatform;
+                    ratePlatform = (distanceBetweenPlatform + scaleRandom) / currentSpeedPlatform;
                     lastInstanceTime = MyTimer.Instance.TotalTimeSecond;
                 }
             }
@@ -180,7 +181,7 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    /*void OnApplicationFocus(bool pauseStatus)
+    void OnApplicationFocus(bool pauseStatus)
     {
         if (pauseStatus) // regain focus
         {
@@ -204,7 +205,7 @@ public class GameManager : MonoBehaviour
                 haveToRestartAfterBackground = true;
             }
         }
-    }*/
+    }
 
     void ManageInput()
     {
@@ -213,22 +214,7 @@ public class GameManager : MonoBehaviour
         {
             if (Input.GetTouch(0).phase == TouchPhase.Began)
             {
-                if (isPlayerDead)
-                {
-                    if (initTime + 1 < MyTimer.Instance.TotalTimeSecond)
-                    {
-                        isPlayerDead = false;
-                        platformEnvironment.transform.eulerAngles = Vector3.zero;
-                        playerInstance.gameObject.GetComponent<Rigidbody>().velocity = Vector3.zero;
-                        interfaceManagerInstance.ShowMenu(true);
-                        InitGame();
-                    }
-                }
-                else
-                {
-                    if (initTime + 1 < MyTimer.Instance.TotalTimeSecond)
-                        StartGame();
-                }
+               ManageGame();
             }
         }
 #endif
@@ -239,70 +225,65 @@ public class GameManager : MonoBehaviour
         {
             if (Input.GetTouch(0).phase == TouchPhase.Began)
             {
-                if (isPlayerDead)
-                {
-                    if (initTime + 1 < MyTimer.Instance.TotalTimeSecond)
-                    {
-                        isPlayerDead = false;
-                        platformEnvironment.transform.eulerAngles = Vector3.zero;
-                        playerInstance.gameObject.GetComponent<Rigidbody>().velocity = Vector3.zero;
-                        interfaceManagerInstance.ShowMenu(true);
-                        InitGame();
-                    }
-                }
-                else
-                {
-                    if (initTime + 1 < MyTimer.Instance.TotalTimeSecond)
-                        StartGame();
-                }
+                ManageGame();
             }
         }
 #endif
 #if UNITY_EDITOR
         if (Input.GetKeyDown("a"))
         {
-            if (isPlayerDead)
-            {
-                if (initTime + 1.5f < MyTimer.Instance.TotalTimeSecond)
-                {
-                    isPlayerDead = false;
-                    platformEnvironment.transform.eulerAngles = Vector3.zero;
-                    playerInstance.gameObject.GetComponent<Rigidbody>().velocity = Vector3.zero;
-                    interfaceManagerInstance.ShowMenu(true);
-                    InitGame();
-                }
-            }
-            else
-            {
-                if (initTime + 1.5f < MyTimer.Instance.TotalTimeSecond)
-                    StartGame();
-            }
+            ManageGame();
         }
 #endif
+    }
+
+    void ManageGame()
+    {
+        if (isPlayerDead)
+        {
+            if (initTime + 1.5f < MyTimer.Instance.TotalTimeSecond)
+            {
+                isPlayerDead = false;
+                platformEnvironment.transform.eulerAngles = Vector3.zero;
+                playerInstance.gameObject.GetComponent<Rigidbody>().velocity = Vector3.zero;
+                interfaceManagerInstance.ShowMenu(true);
+                InitGame();
+            }
+        }
+        else
+        {
+            if (initTime + 1.5f < MyTimer.Instance.TotalTimeSecond)
+                StartGame();
+        }
     }
 
     void InitGame()
     {
         Debug.Log("InitGame");
-        speedPlatform = speedPlatformStart;
+        UpdatecurrentSpeedPlatform(speedPlatformStart);
         playerInstance.InitPlayer();
-        ratePlatform = 0;
         interfaceManagerInstance.InitInterface();
+
+        ratePlatform = 0;
         initTime = MyTimer.Instance.TotalTimeSecond;
         ScorePoint = 0;
         currentFlagPlatform = 0;
         currentStepPlatform = 0;
         flagPlatform = flagPlatformStart;
+
         platformManagerInstance.InitPlatform();
         platformManagerInstance.ClearInstancesPlatform();
+
         pathPlatform[0].currentPosPlatform = e_posPlatform.BOT;
         pathPlatform[0].lastPosPlatform = e_posPlatform.BOT;
         pathPlatform[1].used = false;
         pathPlatform[2].used = false;
         pathPlatform[1].justCreated = false;
         pathPlatform[2].justCreated = false;
+
         currentMinDistanceBetweenPlatform = minDistanceBetweenPlatform;
         currentMaxDistanceBetweenPlatform = maxDistanceBetweenPlatform;
+
         InitTerrain();
         platformManagerInstance.CurrentPlatformPlayer = platformManagerInstance.InstancesPlatform[0];
     }
@@ -314,7 +295,7 @@ public class GameManager : MonoBehaviour
         Vector3 posPlatform = Vector3.forward * offset;
 
         posPlatform += Vector3.up * 70;
-        platformManagerInstance.CreatePlatform(pathPlatform[0].currentPosPlatform, speedPlatform, posPlatform, 6, false, false);
+        platformManagerInstance.CreatePlatform(pathPlatform[0].currentPosPlatform, currentSpeedPlatform, posPlatform, 6, false, false);
         GetNewPosPlatform(0);
 
         distanceBetweenPlatform = Random.Range(currentMinDistanceBetweenPlatform, currentMaxDistanceBetweenPlatform);
@@ -329,7 +310,7 @@ public class GameManager : MonoBehaviour
             {
                 if (pathPlatform[count].used && !pathPlatform[count].justCreated)
                 {
-                    GameObject obj = platformManagerInstance.CreatePlatform(pathPlatform[count].nextPosPlatform, speedPlatform, posPlatform, scaleRandom);
+                    GameObject obj = platformManagerInstance.CreatePlatform(pathPlatform[count].nextPosPlatform, currentSpeedPlatform, posPlatform, scaleRandom);
 
                     if (count == 0)
                         if (OnPath != null)
@@ -356,7 +337,7 @@ public class GameManager : MonoBehaviour
             }
             
             VerifIfSimilarPath();
-            lastInstanceTime = (distanceBetweenPlatform + scaleRandom + offset) / speedPlatform;
+            lastInstanceTime = (distanceBetweenPlatform + scaleRandom + offset) / currentSpeedPlatform;
             offset += (scaleRandom + distanceBetweenPlatform);
             posPlatform = Vector3.forward * offset;
         }
@@ -397,15 +378,14 @@ public class GameManager : MonoBehaviour
     {
         if (currentStepPlatform < stepPlatform && currentFlagPlatform >= flagPlatform)
         {
-            speedPlatform += 0.5f;
-            platformManagerInstance.UpdateSpeedPlatform(speedPlatform);
+            UpdatecurrentSpeedPlatform(currentSpeedPlatform + 0.8f);
             platformManagerInstance.UpdateColorPlatform();
             currentStepPlatform++;
             flagPlatform += 10;
             currentFlagPlatform = 0;
             audioSource.PlayOneShot(stepSound);
-            currentMinDistanceBetweenPlatform += 0.2f;
-            currentMaxDistanceBetweenPlatform += 0.5f;
+            currentMinDistanceBetweenPlatform += 0.1f;
+            currentMaxDistanceBetweenPlatform += 0.3f;
         }
 
         currentFlagPlatform++;
@@ -442,7 +422,6 @@ public class GameManager : MonoBehaviour
                     && pathPlatform[countComparePath].used
                     && pathPlatform[countPath].nextPosPlatform == pathPlatform[countComparePath].nextPosPlatform)
                 {
-                    Debug.Log("PATH " + countPath + " EST MIS A FALSE");
                     pathPlatform[countPath].used = false;
                 }
             }
@@ -464,26 +443,11 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    int ActivatePath()
+    void UpdatecurrentSpeedPlatform(float addedSpeed)
     {
-        int result = 0;
-        for (int count = 1; count < pathPlatform.Length; count++)
-        {
-            if (pathPlatform[count].justCreated == true)
-                pathPlatform[count].justCreated = false;
-        }
-        return result;
-    }
-
-    int CountNumberPath()
-    {
-        int result = 0;
-        for (int count = 0; count < pathPlatform.Length; count++)
-        {
-            if (pathPlatform[count].used == true)
-                result++;
-        }
-        return result;
+        currentSpeedPlatform = addedSpeed;
+        speedPlatform = currentSpeedPlatform;
+        platformManagerInstance.UpdatecurrentSpeedPlatform(currentSpeedPlatform);
     }
 
     public void StartGame()
@@ -531,6 +495,7 @@ public class GameManager : MonoBehaviour
             MyTimer.Instance.Pause = value;
         }
     }
+
     public bool GameStarted { get; set; }
     public int ScorePoint { get; set; }
     public float ScoreTime
@@ -570,11 +535,27 @@ public class GameManager : MonoBehaviour
         }
 
         interfaceManagerInstance.UpdateRestartBackground("GO !");
-        yield return new WaitForSeconds(1);
+        yield return new WaitForSeconds(0.5f);
         interfaceManagerInstance.ShowRestartBackground(false);
         interfaceManagerInstance.ShowIngameUI(true);
         Pause = false;
         haveToRestartAfterBackground = false;
+
+        float start = 0;
+        float end = speedPlatform;
+
+        float elapsedTime = 0.0f;
+
+        while (elapsedTime < 1.0f)
+        {
+            if (!Pause)
+            {
+                currentSpeedPlatform = Mathf.Lerp(start, end, elapsedTime);
+                elapsedTime += Time.deltaTime * 2;
+            }
+
+            yield return null;
+        }
     }
 
     IEnumerator DoRotatePlatformEnvironment(e_dirRotation dir)

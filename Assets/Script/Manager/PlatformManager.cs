@@ -112,7 +112,7 @@ public class PlatformManager : MonoBehaviour
         return currentInstance;
     }
 
-    public void UpdateSpeedPlatform(float newSpeed)
+    public void UpdatecurrentSpeedPlatform(float newSpeed)
     {
         instancePlatform.ForEach(delegate (GameObject obj)
         {
