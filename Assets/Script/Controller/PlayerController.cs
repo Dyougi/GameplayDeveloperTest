@@ -1,5 +1,4 @@
 ﻿using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
@@ -55,7 +54,6 @@ public class PlayerController : MonoBehaviour {
             {
                 if (isJumping && rb.velocity.y != 0)
                 {
-                    Log.WriteStringDate("Landing");
                     if (OnLand != null)
                         OnLand(e_jump.NONE);
                     isJumping = false;
@@ -136,11 +134,9 @@ public class PlayerController : MonoBehaviour {
 
     void DoJump(e_jump jump)
     {
-        Log.WriteStringDate("Try to jump");
         if (!isJumping)
         {
             audioSource.PlayOneShot(jumpSound);
-            Log.WriteStringDate("Jump !");
             if (OnJump != null)
             {
                 OnJump(jump);

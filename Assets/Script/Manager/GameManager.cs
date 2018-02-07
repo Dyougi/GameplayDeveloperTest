@@ -1,8 +1,5 @@
 ﻿using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.Events;
-using UnityEngine.EventSystems;
 
 public class GameManager : MonoBehaviour
 {
@@ -99,8 +96,6 @@ public class GameManager : MonoBehaviour
 
         audioSource = GetComponent<AudioSource>();
         pathPlatform = new PathPlatform[3];
-
-        Log.ClearFile();
     }
 
     public static GameManager Instance
@@ -260,7 +255,6 @@ public class GameManager : MonoBehaviour
     void InitGame()
     {
         Debug.Log("InitGame");
-        UpdatecurrentSpeedPlatform(speedPlatformStart);
         playerInstance.InitPlayer();
         interfaceManagerInstance.InitInterface();
 
@@ -283,6 +277,8 @@ public class GameManager : MonoBehaviour
 
         currentMinDistanceBetweenPlatform = minDistanceBetweenPlatform;
         currentMaxDistanceBetweenPlatform = maxDistanceBetweenPlatform;
+
+        UpdatecurrentSpeedPlatform(speedPlatformStart);
 
         InitTerrain();
         platformManagerInstance.CurrentPlatformPlayer = platformManagerInstance.InstancesPlatform[0];
